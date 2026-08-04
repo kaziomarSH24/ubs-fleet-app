@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         primaryColor: Vx.blue500,
         scaffoldBackgroundColor: const Color(0xFF0F172A),
-        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
+        fontFamily: 'Poppins',
         useMaterial3: true,
       ),
       routerConfig: appRouter,
