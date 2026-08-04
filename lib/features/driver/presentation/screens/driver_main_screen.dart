@@ -12,15 +12,19 @@ class DriverMainScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     
     // Determine selected index based on route
-    int currentIndex = 0;
-    final location = GoRouterState.of(context).uri.toString();
-    if (location.startsWith('/driver/logs')) {
-      currentIndex = 2;
-    } else if (location.startsWith('/driver/account')) {
-      currentIndex = 3;
-    } else if (location.startsWith('/driver/vehicles')) {
-      currentIndex = 1;
+    int _calculateSelectedIndex(BuildContext context) {
+      final location = GoRouterState.of(context).uri.toString();
+      if (location.startsWith('/driver/logs')) {
+        return 1;
+      } else if (location.startsWith('/driver/wallet')) {
+        return 2;
+      } else if (location.startsWith('/driver/account')) {
+        return 3;
+      }
+      return 0;
     }
+
+    final currentIndex = _calculateSelectedIndex(context);
 
     return Scaffold(
       body: child,
