@@ -82,7 +82,7 @@ class DriverProfileScreen extends ConsumerWidget {
                               children: [
                                 const Icon(Icons.language, size: 16, color: Colors.cyanAccent),
                                 4.widthBox,
-                                (ref.watch(localeProvider).languageCode == 'en' ? 'EN' : 'বাং')
+                                (ref.watch(localeProvider).languageCode == 'en' ? 'বাং' : 'EN')
                                     .text
                                     .color(Colors.cyanAccent)
                                     .bold
