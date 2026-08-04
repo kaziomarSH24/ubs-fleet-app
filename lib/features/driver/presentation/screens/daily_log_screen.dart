@@ -22,6 +22,8 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   
   final _endKmController = TextEditingController();
   final _octaneKmController = TextEditingController();
+  final _tollParkingController = TextEditingController();
+  final _fuelAmountController = TextEditingController();
   
   int _totalRun = 0;
   int _cngRun = 0;
@@ -122,6 +124,8 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   void dispose() {
     _endKmController.dispose();
     _octaneKmController.dispose();
+    _tollParkingController.dispose();
+    _fuelAmountController.dispose();
     super.dispose();
   }
 
@@ -330,6 +334,58 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                       ],
                     ),
                   ).animate().fade(delay: 300.ms, duration: 400.ms).slideY(begin: 0.1, end: 0),
+                  
+                  16.heightBox,
+
+                  // Daily Expenses Section
+                  _buildGlassCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.account_balance_wallet, color: Colors.cyanAccent, size: 20),
+                                8.widthBox,
+                                "Daily Expenses".text.bold.color(Colors.cyanAccent).make(),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.cyanAccent.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.camera_alt, color: Colors.cyanAccent, size: 14),
+                                  4.widthBox,
+                                  "Receipt".text.color(Colors.cyanAccent).size(12).bold.make(),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(color: Colors.white12).py8(),
+                        
+                        CustomTextField(
+                          controller: _tollParkingController,
+                          hint: "Toll / Parking (৳)",
+                          icon: Icons.local_parking,
+                          keyboardType: TextInputType.number,
+                        ),
+                        12.heightBox,
+                        CustomTextField(
+                          controller: _fuelAmountController,
+                          hint: "Fuel Amount (৳)",
+                          icon: Icons.local_gas_station,
+                          keyboardType: TextInputType.number,
+                        ),
+                      ],
+                    ),
+                  ).animate().fade(delay: 350.ms, duration: 400.ms).slideY(begin: 0.1, end: 0),
                   
                   40.heightBox,
                   

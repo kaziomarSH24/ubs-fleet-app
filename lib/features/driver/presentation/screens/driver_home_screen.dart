@@ -443,25 +443,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                           .color(Colors.greenAccent)
                           .letterSpacing(1)
                           .make(),
-                      4.heightBox,
-                      l10n.optional.text
-                          .color(Colors.white54)
-                          .size(12)
-                          .letterSpacing(1)
-                          .make(),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.greenAccent.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.receipt_long,
                       color: Colors.greenAccent,
                     ),
                   ),
