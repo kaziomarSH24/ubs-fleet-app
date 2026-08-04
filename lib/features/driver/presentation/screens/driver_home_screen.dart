@@ -1,10 +1,17 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:ubs_fleet_app/l10n/app_localizations.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/providers/locale_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   const DriverHomeScreen({super.key});
@@ -15,9 +22,13 @@ class DriverHomeScreen extends StatefulWidget {
 
 class _DriverHomeScreenState extends State<DriverHomeScreen> {
   bool _isDutyOn = false;
+  DateTime? _dutyStartTime;
+  int? _currentStartKm;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: const Color(
         0xFF0B1320,
@@ -37,7 +48,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           SafeArea(
             child: Column(
               children: [
-                _buildAppBar(),
+                _buildAppBar(l10n),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
@@ -47,13 +58,13 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _buildProfileSection(),
+                        _buildProfileSection(l10n),
                         30.heightBox,
-                        _buildStartDutyCard(),
+                        _buildStartDutyCard(l10n),
                         24.heightBox,
-                        _buildMeterReadingCard(),
+                        _buildMeterReadingCard(l10n),
                         24.heightBox,
-                        _buildRecentLogsSection(),
+                        _buildRecentLogsSection(l10n),
                         24.heightBox,
                       ],
                     ),
@@ -64,25 +75,106 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: _buildBottomNav(l10n),
     );
   }
 
-  Widget _buildAppBar() {
+  void _showStartDutyDialog(BuildContext context) {
+    final startKmController = TextEditingController(text: '250507');
+    final l10n = AppLocalizations.of(context)!;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: AppColors.background,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(l10n.verifyStartKmTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.verifyStartKmDesc,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: startKmController,
+                  hint: l10n.startKm,
+                  icon: Icons.speed,
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(l10n.cancel, style: const TextStyle(color: Colors.white54)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                setState(() {
+                  _isDutyOn = true;
+                  _dutyStartTime = DateTime.now();
+                  _currentStartKm = int.tryParse(startKmController.text) ?? 250507;
+                });
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.cyanAccent),
+              child: Text(l10n.startDuty, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      }
+    );
+  }
+
+  Widget _buildAppBar(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Icon(Icons.menu, color: Colors.white70, size: 28),
-          "DRIVER COMPANION".text.bold.letterSpacing(1.5).white.make(),
-          const SizedBox(width: 28), // Spacer to balance the menu icon
+          l10n.appTitle.text.bold.letterSpacing(1.5).white.make(),
+          Consumer(
+            builder: (context, ref, child) {
+              final locale = ref.watch(localeProvider);
+              final isEn = locale.languageCode == 'en';
+              return GestureDetector(
+                onTap: () {
+                  ref.read(localeProvider.notifier).state = Locale(isEn ? 'bn' : 'en');
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.cyan.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.cyan.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.language, size: 16, color: Colors.cyanAccent),
+                      const SizedBox(width: 6),
+                      Text(
+                        isEn ? "বাং" : "EN",
+                        style: const TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildProfileSection() {
+  Widget _buildProfileSection(AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -104,7 +196,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                "WELCOME,".text
+                l10n.welcome.text
                     .color(Colors.white54)
                     .size(12)
                     .letterSpacing(1)
@@ -114,15 +206,23 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             ),
           ],
         ),
-        (_isDutyOn ? "ON DUTY" : "OFF DUTY").text
+        (_isDutyOn ? l10n.onDuty : l10n.offDuty).text
             .color(_isDutyOn ? Colors.greenAccent : Colors.white54)
             .bold
             .make(),
+        if (_isDutyOn && _dutyStartTime != null) ...[
+          4.heightBox,
+          "Started at: ${DateFormat('hh:mm a').format(_dutyStartTime!)}"
+              .text
+              .size(12)
+              .color(Colors.white54)
+              .make(),
+        ],
       ],
     );
   }
 
-  Widget _buildStartDutyCard() {
+  Widget _buildStartDutyCard(AppLocalizations l10n) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: BackdropFilter(
@@ -172,10 +272,25 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               24.heightBox,
               // Start Duty Button
               GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isDutyOn = !_isDutyOn;
-                  });
+                onTap: () async {
+                  if (_isDutyOn) {
+                    final result = await context.push(
+                      '/driver/daily-log', 
+                      extra: {
+                        'startTime': _dutyStartTime,
+                        'startKm': _currentStartKm,
+                      }
+                    );
+                    if (result == true) {
+                      setState(() {
+                        _isDutyOn = false;
+                        _dutyStartTime = null;
+                        _currentStartKm = null;
+                      });
+                    }
+                  } else {
+                    _showStartDutyDialog(context);
+                  }
                 },
                 child: Container(
                   width: double.infinity,
@@ -197,7 +312,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                     ],
                   ),
                   child: Center(
-                    child: (_isDutyOn ? "END DUTY" : "START DUTY").text.xl2.bold
+                    child: (_isDutyOn ? l10n.endDuty : l10n.startDuty).text.xl2.bold
                         .color(Colors.black87)
                         .make(),
                   ),
@@ -210,7 +325,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     ).animate().fade(duration: 500.ms).slideY(begin: 0.1, end: 0);
   }
 
-  Widget _buildMeterReadingCard() {
+  Widget _buildMeterReadingCard(AppLocalizations l10n) {
+    final displayKm = _isDutyOn && _currentStartKm != null ? _currentStartKm! : 250507;
+    final formatter = NumberFormat('#,##0');
+    final formattedKm = formatter.format(displayKm);
+    
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: BackdropFilter(
@@ -225,25 +344,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              "METER READING (KM)".text.bold.white.letterSpacing(1).make(),
-              12.heightBox,
-              Container(
-                height: 2,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.cyanAccent, Colors.cyanAccent.withValues(alpha: 0.0)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(color: Colors.cyanAccent.withValues(alpha: 0.5), blurRadius: 6),
-                  ],
-                ),
-              ),
-              12.heightBox,
-
-              "Current Reading".text.color(Colors.white60).make(),
+              l10n.meterReading.text.bold.white.letterSpacing(1).make(),
+              const Divider(color: Colors.white12, height: 24, thickness: 1),
+              l10n.currentReading.text.color(Colors.white60).make(),
               8.heightBox,
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -258,7 +361,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                         textBaseline: TextBaseline.alphabetic,
                         children: [
                           Text(
-                            "24,567.8",
+                            formattedKm,
                             style: const TextStyle(
                               fontFamily: 'Seven Segment',
                               fontSize: 45,
@@ -281,17 +384,16 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   12.widthBox,
                   // Log New Button
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: Colors.cyan.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.cyan.withValues(alpha: 0.3)),
                     ),
-                    child: "LOG NEW".text.bold.color(Colors.cyanAccent).make(),
-                  ),
+                    child: l10n.logNew.text.bold.color(Colors.cyanAccent).make(),
+                  ).onTap(() {
+                    context.push('/driver/expense');
+                  }),
                 ],
               ),
               16.heightBox,
@@ -300,11 +402,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    "Yesterday's Closing".text
+                    l10n.yesterdaysClosing.text
                         .color(Colors.white54)
                         .size(12)
                         .make(),
-                    "24,490.2 KM".text.white.bold.fontFamily('Orbitron').make(),
+                    "250,507 KM".text.white.bold.fontFamily('Orbitron').make(),
                   ],
                 ),
               ),
@@ -315,11 +417,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     ).animate().fade(delay: 200.ms).slideY(begin: 0.1, end: 0);
   }
 
-  Widget _buildRecentLogsSection() {
+  Widget _buildRecentLogsSection(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        "RECENT LOGS".text.color(Colors.white54).letterSpacing(1).make(),
+        l10n.recentLogs.text.color(Colors.white54).letterSpacing(1).make(),
         12.heightBox,
         ClipRRect(
           borderRadius: BorderRadius.circular(16),
@@ -338,12 +440,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      "UPLOAD RECEIPT".text.bold
+                      l10n.uploadReceipt.text.bold
                           .color(Colors.greenAccent)
                           .letterSpacing(1)
                           .make(),
                       4.heightBox,
-                      "OPTIONAL".text
+                      l10n.optional.text
                           .color(Colors.white54)
                           .size(12)
                           .letterSpacing(1)
@@ -373,7 +475,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     ).animate().fade(delay: 400.ms).slideY(begin: 0.1, end: 0);
   }
 
-  Widget _buildBottomNav() {
+  Widget _buildBottomNav(AppLocalizations l10n) {
     return Theme(
       data: Theme.of(context).copyWith(
         splashColor: Colors.transparent,
@@ -389,34 +491,34 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           fontSize: 12,
         ),
         unselectedLabelStyle: const TextStyle(fontSize: 12),
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Padding(
+            icon: const Padding(
               padding: EdgeInsets.only(bottom: 4.0),
               child: Icon(Icons.speed),
             ),
-            label: "Dashboard",
+            label: l10n.navDashboard,
           ),
           BottomNavigationBarItem(
-            icon: Padding(
+            icon: const Padding(
               padding: EdgeInsets.only(bottom: 4.0),
               child: Icon(Icons.directions_car_outlined),
             ),
-            label: "Vehicles",
+            label: l10n.navVehicles,
           ),
           BottomNavigationBarItem(
-            icon: Padding(
+            icon: const Padding(
               padding: EdgeInsets.only(bottom: 4.0),
               child: Icon(Icons.receipt_long_outlined),
             ),
-            label: "Logs",
+            label: l10n.navLogs,
           ),
           BottomNavigationBarItem(
-            icon: Padding(
+            icon: const Padding(
               padding: EdgeInsets.only(bottom: 4.0),
               child: Icon(Icons.person_outline),
             ),
-            label: "Account",
+            label: l10n.navAccount,
           ),
         ],
       ),

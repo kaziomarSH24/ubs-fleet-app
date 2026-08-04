@@ -6,6 +6,7 @@ class CustomTextField extends StatefulWidget {
   final String hint;
   final IconData icon;
   final bool isPassword;
+  final TextInputType? keyboardType;
 
   const CustomTextField({
     super.key,
@@ -13,6 +14,7 @@ class CustomTextField extends StatefulWidget {
     required this.hint,
     required this.icon,
     this.isPassword = false,
+    this.keyboardType,
   });
 
   @override
@@ -34,7 +36,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         controller: widget.controller,
         obscureText: widget.isPassword && _obscureText,
         style: const TextStyle(color: AppColors.textPrimary),
-        keyboardType: widget.isPassword ? TextInputType.text : TextInputType.emailAddress,
+        keyboardType: widget.keyboardType ?? (widget.isPassword ? TextInputType.text : TextInputType.text),
         decoration: InputDecoration(
           hintText: widget.hint,
           hintStyle: TextStyle(color: AppColors.textPrimary.withValues(alpha: 0.4)),

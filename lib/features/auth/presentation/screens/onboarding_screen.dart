@@ -255,12 +255,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                       borderRadius: BorderRadius.circular(50),
                                       child: Container(
                                         padding: const EdgeInsets.all(16),
-                                        decoration: const BoxDecoration(
+                                        decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           color: AppColors.primary,
                                           boxShadow: [
                                             BoxShadow(
-                                              color: AppColors.primary,
+                                              color: AppColors.primary.withValues(alpha: 0.4),
                                               blurRadius: 10,
                                               spreadRadius: -2,
                                             ),

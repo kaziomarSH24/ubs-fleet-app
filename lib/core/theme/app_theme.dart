@@ -7,7 +7,7 @@ class AppTheme {
       brightness: Brightness.dark,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.background,
-      fontFamily: 'Poppins',
+      fontFamily: 'Outfit',
       useMaterial3: true,
       textTheme: const TextTheme(
         bodyLarge: TextStyle(color: AppColors.textPrimary),
