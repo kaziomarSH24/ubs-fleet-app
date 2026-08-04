@@ -15,8 +15,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<Map<String, String>> onboardingData = [
     {
-      "title": "Track Your Fleet",
-      "description": "Real-time tracking of all your vehicles and drivers from anywhere.",
+      "title": "Manage Your Fleet",
+      "description": "Easily assign and manage trips, drivers, and vehicles from a single dashboard.",
       "lottie": "assets/lottie/track.json"
     },
     {
