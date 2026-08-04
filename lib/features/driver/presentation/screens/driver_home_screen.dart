@@ -226,35 +226,59 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               "METER READING (KM)".text.bold.white.letterSpacing(1).make(),
-              const Divider(color: Colors.white12, height: 24, thickness: 1),
+              12.heightBox,
+              Container(
+                height: 2,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.cyanAccent, Colors.cyanAccent.withValues(alpha: 0.0)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(color: Colors.cyanAccent.withValues(alpha: 0.5), blurRadius: 6),
+                  ],
+                ),
+              ),
+              12.heightBox,
 
               "Current Reading".text.color(Colors.white60).make(),
               8.heightBox,
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Digital Glowing Text
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        "24,567.8",
-                        style: GoogleFonts.shareTechMono(
-                          fontSize: 34,
-                          color: Colors.greenAccent,
-                          shadows: [
-                            Shadow(
-                              color: Colors.greenAccent.withValues(alpha: 0.6),
-                              blurRadius: 10,
+                  // Glowing Text
+                  Expanded(
+                    child: FittedBox(
+                      alignment: Alignment.centerLeft,
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            "24,567.8",
+                            style: const TextStyle(
+                              fontFamily: 'Seven Segment',
+                              fontSize: 45,
+                              color: Color(0xFF2EFA73),
+                              letterSpacing: 2,
+                              shadows: [
+                                Shadow(
+                                  color: Color(0x992EFA73),
+                                  blurRadius: 12,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                          8.widthBox,
+                          "KM".text.color(const Color(0xFF2EFA73)).size(16).bold.make(),
+                        ],
                       ),
-                      4.widthBox,
-                      "KM".text.color(Colors.greenAccent).bold.make(),
-                    ],
+                    ),
                   ),
+                  12.widthBox,
                   // Log New Button
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -280,7 +304,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                         .color(Colors.white54)
                         .size(12)
                         .make(),
-                    "24,490.2 KM".text.white.bold.make(),
+                    "24,490.2 KM".text.white.bold.fontFamily('Orbitron').make(),
                   ],
                 ),
               ),
