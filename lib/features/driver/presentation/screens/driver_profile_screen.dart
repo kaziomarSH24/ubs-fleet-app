@@ -57,7 +57,7 @@ class DriverProfileScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      (l10n?.navAccount ?? "MY PROFILE").text.white.letterSpacing(1).bold.xl.make(),
+                      (l10n?.profileTitle ?? "MY PROFILE").text.white.letterSpacing(1).bold.xl.make(),
                     ],
                   ),
                   40.heightBox,
@@ -94,12 +94,12 @@ class DriverProfileScreen extends StatelessWidget {
                   
                   // Personal Details Card (Glassmorphism)
                   _buildGlassCard(
-                    title: "PERSONAL DETAILS",
+                    title: l10n?.personalDetails ?? "PERSONAL DETAILS",
                     icon: Icons.badge_outlined,
                     children: [
-                      _buildInfoRow(Icons.phone, "Phone Number", mockUser['phone']!),
+                      _buildInfoRow(Icons.phone, l10n?.phoneNumber ?? "Phone Number", mockUser['phone']!),
                       const Divider(color: Colors.white10, height: 24),
-                      _buildInfoRow(Icons.card_membership, "License No", mockUser['license']!),
+                      _buildInfoRow(Icons.card_membership, l10n?.licenseNo ?? "License No", mockUser['license']!),
                     ],
                   ).animate().fade(delay: 200.ms).slideY(begin: 0.1, end: 0),
                   
@@ -107,14 +107,14 @@ class DriverProfileScreen extends StatelessWidget {
                   
                   // Assigned Vehicle Card
                   _buildGlassCard(
-                    title: "ASSIGNED VEHICLE",
+                    title: l10n?.assignedVehicle ?? "ASSIGNED VEHICLE",
                     icon: Icons.directions_car_outlined,
                     children: [
-                      _buildInfoRow(Icons.local_taxi, "Vehicle Model", mockVehicle['model']!),
+                      _buildInfoRow(Icons.local_taxi, l10n?.vehicleModel ?? "Vehicle Model", mockVehicle['model']!),
                       const Divider(color: Colors.white10, height: 24),
-                      _buildInfoRow(Icons.pin, "Plate Number", mockVehicle['plate']!),
+                      _buildInfoRow(Icons.pin, l10n?.plateNumber ?? "Plate Number", mockVehicle['plate']!),
                       const Divider(color: Colors.white10, height: 24),
-                      _buildInfoRow(Icons.local_gas_station, "Fuel Type", mockVehicle['fuel']!),
+                      _buildInfoRow(Icons.local_gas_station, l10n?.fuelType ?? "Fuel Type", mockVehicle['fuel']!),
                     ],
                   ).animate().fade(delay: 300.ms).slideY(begin: 0.1, end: 0),
                   
@@ -143,7 +143,7 @@ class DriverProfileScreen extends StatelessWidget {
                         children: [
                           const Icon(Icons.logout),
                           8.widthBox,
-                          "LOGOUT".text.bold.letterSpacing(1).make(),
+                          (l10n?.logout ?? "LOGOUT").text.bold.letterSpacing(1).make(),
                         ],
                       ),
                     ),

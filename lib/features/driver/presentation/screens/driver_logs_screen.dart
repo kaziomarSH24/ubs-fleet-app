@@ -68,7 +68,7 @@ class _DriverLogsScreenState extends State<DriverLogsScreen> {
               child: Icon(Icons.person, color: Colors.black, size: 20),
             ),
             12.widthBox,
-            (l10n?.recentLogs ?? "TRIP HISTORY").text.white.letterSpacing(1).bold.make(),
+            (l10n?.tripHistory ?? "TRIP HISTORY").text.white.letterSpacing(1).bold.make(),
           ],
         ),
         actions: [

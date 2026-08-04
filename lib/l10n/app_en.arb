@@ -41,5 +41,15 @@
   "submitLog": "SUBMIT LOG",
   "verifyStartKmTitle": "Verify Start KM",
   "verifyStartKmDesc": "Please verify the current meter reading before starting duty:",
-  "cancel": "CANCEL"
+  "cancel": "CANCEL",
+  "profileTitle": "MY PROFILE",
+  "personalDetails": "PERSONAL DETAILS",
+  "assignedVehicle": "ASSIGNED VEHICLE",
+  "phoneNumber": "Phone Number",
+  "licenseNo": "License No",
+  "vehicleModel": "Vehicle Model",
+  "plateNumber": "Plate Number",
+  "fuelType": "Fuel Type",
+  "logout": "LOGOUT",
+  "tripHistory": "TRIP HISTORY"
 }

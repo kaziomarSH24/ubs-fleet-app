@@ -38,5 +38,15 @@
   "submitLog": "লগ সাবমিট করুন",
   "verifyStartKmTitle": "মিটার কনফার্ম করুন",
   "verifyStartKmDesc": "ডিউটি শুরু করার আগে গাড়ির বর্তমান মিটারের সাথে এই নাম্বারটি মিলিয়ে নিন:",
-  "cancel": "বাতিল"
+  "cancel": "বাতিল",
+  "profileTitle": "আমার প্রোফাইল",
+  "personalDetails": "ব্যক্তিগত তথ্যাদি",
+  "assignedVehicle": "নির্ধারিত গাড়ি",
+  "phoneNumber": "মোবাইল নম্বর",
+  "licenseNo": "লাইসেন্স নম্বর",
+  "vehicleModel": "গাড়ির মডেল",
+  "plateNumber": "প্লেট নম্বর",
+  "fuelType": "জ্বালানির ধরন",
+  "logout": "লগআউট",
+  "tripHistory": "ট্রিপ হিস্ট্রি"
 }
