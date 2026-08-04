@@ -78,7 +78,7 @@ class _DriverLogsScreenState extends State<DriverLogsScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.calendar_month, color: Colors.cyanAccent),
-            onPressed: () {},
+            onPressed: () => _selectDateRange(context),
           ),
           8.widthBox,
         ],
@@ -125,6 +125,42 @@ class _DriverLogsScreenState extends State<DriverLogsScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _selectDateRange(BuildContext context) async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: Colors.cyanAccent,
+              onPrimary: Colors.black,
+              surface: Color(0xFF0F1A2C),
+              onSurface: Colors.white,
+            ),
+            dialogBackgroundColor: const Color(0xFF0B1320),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && context.mounted) {
+      // In the future, we will fetch Supabase data using this date range
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Filtering logs from ${picked.start.toString().split(' ')[0]} to ${picked.end.toString().split(' ')[0]}',
+            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.cyanAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Widget _buildLogCard(Map<String, dynamic> log, bool isLatest) {
