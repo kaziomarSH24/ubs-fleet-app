@@ -13,22 +13,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  // We are using direct network URLs for Lottie files so you don't need to download them manually!
   final List<Map<String, String>> onboardingData = [
     {
       "title": "Track Your Fleet",
       "description": "Real-time tracking of all your vehicles and drivers from anywhere.",
-      "lottie": "https://lottie.host/809c9ed3-36ff-4bd2-9b55-a2267fbcba17/8Q5FqWvJ9Q.json"
+      "lottie": "assets/lottie/track.json"
     },
     {
       "title": "Manage Expenses",
       "description": "Easily record and manage toll, fuel, and maintenance expenses instantly.",
-      "lottie": "https://lottie.host/d7fb2e20-569d-4886-add4-b901b0b55146/fI2W2iYJ8w.json"
+      "lottie": "assets/lottie/expense.json"
     },
     {
       "title": "Offline Sync",
       "description": "Works perfectly without internet. Syncs data automatically when online.",
-      "lottie": "https://lottie.host/17e29623-1455-4cc7-ab5b-51368b122709/v2L9R6S8kG.json"
+      "lottie": "assets/lottie/sync.json"
     },
   ];
 
@@ -52,13 +51,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Lottie.network(
+                      Lottie.asset(
                         onboardingData[index]["lottie"]!,
                         height: 300,
                         width: 300,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) => 
-                            const Icon(Icons.cloud_off, size: 100, color: Colors.white54),
+                            const Icon(Icons.error_outline, size: 100, color: Colors.white54),
                       ),
                       40.heightBox,
                       onboardingData[index]["title"]!

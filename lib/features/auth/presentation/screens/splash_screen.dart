@@ -44,7 +44,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 .xl4
                 .bold
                 .color(Colors.cyan)
-                .tracking(5)
+                .letterSpacing(5)
                 .make()
                 .animate()
                 .fade(delay: 800.ms, duration: 600.ms)
@@ -54,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 .text
                 .sm
                 .color(Colors.white70)
-                .tracking(2)
+                .letterSpacing(2)
                 .make()
                 .animate()
                 .fade(delay: 1200.ms, duration: 600.ms),
