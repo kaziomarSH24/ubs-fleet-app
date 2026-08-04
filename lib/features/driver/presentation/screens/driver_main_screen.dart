@@ -59,7 +59,7 @@ class DriverMainScreen extends StatelessWidget {
             if (index == 0) context.go('/driver-home');
             if (index == 1) {} // context.go('/driver/vehicles');
             if (index == 2) context.go('/driver/logs');
-            if (index == 3) {} // context.go('/driver/account');
+            if (index == 3) context.go('/driver/account');
           },
         ),
       ),

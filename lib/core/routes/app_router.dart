@@ -7,6 +7,7 @@ import '../../features/driver/presentation/screens/expense_entry_screen.dart';
 import '../../features/driver/presentation/screens/daily_log_screen.dart';
 import '../../features/driver/presentation/screens/driver_logs_screen.dart';
 import '../../features/driver/presentation/screens/driver_main_screen.dart';
+import '../../features/driver/presentation/screens/driver_profile_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -35,6 +36,10 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/driver/logs',
           builder: (context, state) => const DriverLogsScreen(),
+        ),
+        GoRoute(
+          path: '/driver/account',
+          builder: (context, state) => const DriverProfileScreen(),
         ),
       ],
     ),
