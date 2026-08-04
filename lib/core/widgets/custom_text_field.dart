@@ -37,13 +37,13 @@ class _CustomTextFieldState extends State<CustomTextField> {
         keyboardType: widget.isPassword ? TextInputType.text : TextInputType.emailAddress,
         decoration: InputDecoration(
           hintText: widget.hint,
-          hintStyle: TextStyle(color: AppColors.textPrimary.withOpacity(0.4)),
+          hintStyle: TextStyle(color: AppColors.textPrimary.withValues(alpha: 0.4)),
           prefixIcon: Icon(widget.icon, color: AppColors.primary),
           suffixIcon: widget.isPassword
               ? IconButton(
                   icon: Icon(
                     _obscureText ? Icons.visibility_off : Icons.visibility,
-                    color: AppColors.textPrimary.withOpacity(0.4),
+                    color: AppColors.textPrimary.withValues(alpha: 0.4),
                   ),
                   onPressed: () {
                     setState(() {

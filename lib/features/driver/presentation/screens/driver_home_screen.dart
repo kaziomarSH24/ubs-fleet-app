@@ -130,12 +130,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.03),
+            color: Colors.white.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.cyan.withOpacity(0.5), width: 1.5),
+            border: Border.all(color: Colors.cyan.withValues(alpha: 0.5), width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Colors.cyan.withOpacity(0.1),
+                color: Colors.cyan.withValues(alpha: 0.1),
                 blurRadius: 20,
                 spreadRadius: 2,
               ),
@@ -152,7 +152,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 decoration: BoxDecoration(
                   color: Colors.black45,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.cyan.withOpacity(0.3)),
+                  border: Border.all(color: Colors.cyan.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -190,7 +190,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                     boxShadow: [
                       BoxShadow(
                         color: (_isDutyOn ? Colors.redAccent : Colors.cyan)
-                            .withOpacity(0.4),
+                            .withValues(alpha: 0.4),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
@@ -218,7 +218,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: Colors.white10),
           ),
@@ -245,7 +245,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                           color: Colors.greenAccent,
                           shadows: [
                             Shadow(
-                              color: Colors.greenAccent.withOpacity(0.6),
+                              color: Colors.greenAccent.withValues(alpha: 0.6),
                               blurRadius: 10,
                             ),
                           ],
@@ -262,9 +262,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.cyan.withOpacity(0.3)),
+                      border: Border.all(color: Colors.cyan.withValues(alpha: 0.3)),
                     ),
                     child: "LOG NEW".text.bold.color(Colors.cyanAccent).make(),
                   ),
@@ -304,7 +304,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.white10),
               ),
@@ -329,10 +329,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Colors.greenAccent.withOpacity(0.3),
+                        color: Colors.greenAccent.withValues(alpha: 0.3),
                       ),
                     ),
                     child: const Icon(
