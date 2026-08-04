@@ -137,7 +137,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Icon(Icons.menu, color: Colors.white70, size: 28),
+          const SizedBox(width: 28),
           l10n.appTitle.text.bold.letterSpacing(1.5).white.make(),
           Consumer(
             builder: (context, ref, child) {
@@ -315,7 +315,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                         .color(Colors.black87)
                         .make(),
                   ),
-                ),
+                ).animate(onPlay: (controller) => controller.repeat(reverse: true)).scaleXY(end: 1.05, duration: 1000.ms).shimmer(duration: 2000.ms, color: Colors.white.withValues(alpha: 0.3)),
               ),
             ],
           ),

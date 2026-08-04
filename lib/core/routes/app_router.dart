@@ -8,6 +8,7 @@ import '../../features/driver/presentation/screens/daily_log_screen.dart';
 import '../../features/driver/presentation/screens/driver_logs_screen.dart';
 import '../../features/driver/presentation/screens/driver_main_screen.dart';
 import '../../features/driver/presentation/screens/driver_profile_screen.dart';
+import '../../features/driver/presentation/screens/driver_wallet_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -40,6 +41,10 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/driver/account',
           builder: (context, state) => const DriverProfileScreen(),
+        ),
+        GoRoute(
+          path: '/driver/wallet',
+          builder: (context, state) => const DriverWalletScreen(),
         ),
       ],
     ),

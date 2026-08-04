@@ -43,8 +43,8 @@ class DriverMainScreen extends StatelessWidget {
               label: l10n?.navDashboard ?? 'Dashboard',
             ),
             BottomNavigationBarItem(
-              icon: const Padding(padding: EdgeInsets.only(bottom: 4.0), child: Icon(Icons.directions_car)),
-              label: l10n?.navVehicles ?? 'Vehicles',
+              icon: const Padding(padding: EdgeInsets.only(bottom: 4.0), child: Icon(Icons.account_balance_wallet)),
+              label: l10n?.navWallet ?? 'Wallet',
             ),
             BottomNavigationBarItem(
               icon: const Padding(padding: EdgeInsets.only(bottom: 4.0), child: Icon(Icons.receipt_long)),
@@ -57,7 +57,7 @@ class DriverMainScreen extends StatelessWidget {
           ],
           onTap: (index) {
             if (index == 0) context.go('/driver-home');
-            if (index == 1) {} // context.go('/driver/vehicles');
+            if (index == 1) context.go('/driver/wallet');
             if (index == 2) context.go('/driver/logs');
             if (index == 3) context.go('/driver/account');
           },

@@ -48,5 +48,9 @@
   "plateNumber": "প্লেট নম্বর",
   "fuelType": "জ্বালানির ধরন",
   "logout": "লগআউট",
-  "tripHistory": "ট্রিপ হিস্ট্রি"
+  "tripHistory": "ট্রিপ হিস্ট্রি",
+  "navWallet": "মানিব্যাগ",
+  "requestAdvance": "অ্যাডভান্স রিকোয়েস্ট",
+  "recentAdvances": "সাম্প্রতিক অ্যাডভান্স",
+  "totalAdvanceThisMonth": "মোট অ্যাডভান্স (চলতি মাস)"
 }

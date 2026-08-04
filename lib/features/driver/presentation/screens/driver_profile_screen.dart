@@ -3,15 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/providers/locale_provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 
-class DriverProfileScreen extends StatelessWidget {
+class DriverProfileScreen extends ConsumerWidget {
   const DriverProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     
     // Mock user & vehicle data
@@ -55,9 +57,40 @@ class DriverProfileScreen extends StatelessWidget {
                 children: [
                   // App Bar
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      24.widthBox, // Spacer
                       (l10n?.profileTitle ?? "MY PROFILE").text.white.letterSpacing(1).bold.xl.make(),
+                      
+                      // Language Toggle
+                      Container(
+                        height: 36,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3)),
+                          color: Colors.cyanAccent.withValues(alpha: 0.1),
+                        ),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(20),
+                          onTap: () {
+                            ref.read(localeProvider.notifier).toggleLocale();
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.language, size: 16, color: Colors.cyanAccent),
+                                4.widthBox,
+                                (ref.watch(localeProvider).languageCode == 'en' ? 'EN' : 'বাং')
+                                    .text
+                                    .color(Colors.cyanAccent)
+                                    .bold
+                                    .make(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   40.heightBox,
