@@ -73,10 +73,6 @@ class _DriverLogsScreenState extends State<DriverLogsScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.cyanAccent),
-            onPressed: () {},
-          ),
-          IconButton(
             icon: const Icon(Icons.calendar_month, color: Colors.cyanAccent),
             onPressed: () => _selectDateRange(context),
           ),
