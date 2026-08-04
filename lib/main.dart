@@ -14,10 +14,14 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
 
   // Initialize Supabase
-  await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL']!,
-    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
-  );
+  try {
+    await Supabase.initialize(
+      url: dotenv.env['SUPABASE_URL'] ?? 'https://dummy.supabase.co',
+      anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? 'dummy',
+    );
+  } catch (e) {
+    debugPrint('Supabase init failed: $e');
+  }
 
   runApp(
     const ProviderScope(
