@@ -75,7 +75,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNav(l10n),
     );
   }
 
@@ -473,55 +472,5 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         ),
       ],
     ).animate().fade(delay: 400.ms).slideY(begin: 0.1, end: 0);
-  }
-
-  Widget _buildBottomNav(AppLocalizations l10n) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-      ),
-      child: BottomNavigationBar(
-        backgroundColor: const Color(0xFF0B1320),
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.cyanAccent,
-        unselectedItemColor: Colors.white54,
-        selectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
-        unselectedLabelStyle: const TextStyle(fontSize: 12),
-        items: [
-          BottomNavigationBarItem(
-            icon: const Padding(
-              padding: EdgeInsets.only(bottom: 4.0),
-              child: Icon(Icons.speed),
-            ),
-            label: l10n.navDashboard,
-          ),
-          BottomNavigationBarItem(
-            icon: const Padding(
-              padding: EdgeInsets.only(bottom: 4.0),
-              child: Icon(Icons.directions_car_outlined),
-            ),
-            label: l10n.navVehicles,
-          ),
-          BottomNavigationBarItem(
-            icon: const Padding(
-              padding: EdgeInsets.only(bottom: 4.0),
-              child: Icon(Icons.receipt_long_outlined),
-            ),
-            label: l10n.navLogs,
-          ),
-          BottomNavigationBarItem(
-            icon: const Padding(
-              padding: EdgeInsets.only(bottom: 4.0),
-              child: Icon(Icons.person_outline),
-            ),
-            label: l10n.navAccount,
-          ),
-        ],
-      ),
-    );
   }
 }

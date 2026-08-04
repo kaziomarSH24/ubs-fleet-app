@@ -5,6 +5,8 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/driver/presentation/screens/driver_home_screen.dart';
 import '../../features/driver/presentation/screens/expense_entry_screen.dart';
 import '../../features/driver/presentation/screens/daily_log_screen.dart';
+import '../../features/driver/presentation/screens/driver_logs_screen.dart';
+import '../../features/driver/presentation/screens/driver_main_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -21,9 +23,20 @@ final appRouter = GoRouter(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
     ),
-    GoRoute(
-      path: '/driver-home',
-      builder: (context, state) => const DriverHomeScreen(),
+    ShellRoute(
+      builder: (context, state, child) {
+        return DriverMainScreen(child: child);
+      },
+      routes: [
+        GoRoute(
+          path: '/driver-home',
+          builder: (context, state) => const DriverHomeScreen(),
+        ),
+        GoRoute(
+          path: '/driver/logs',
+          builder: (context, state) => const DriverLogsScreen(),
+        ),
+      ],
     ),
     GoRoute(
       path: '/driver/expense',
