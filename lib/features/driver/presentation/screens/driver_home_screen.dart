@@ -1,6 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
 
@@ -17,31 +19,31 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1320), // Darker background similar to mockup
+      backgroundColor: const Color(
+        0xFF0B1320,
+      ), // Darker background similar to mockup
       body: Stack(
         children: [
-          // Background abstract neon elements (mimicking the image's background vibe)
-          Positioned(
-            top: -50,
-            left: -50,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.cyan.withOpacity(0.05),
-                boxShadow: [BoxShadow(color: Colors.cyan.withOpacity(0.1), blurRadius: 100)]
-              ),
+          // Real Background Image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/driver_bg.jpg',
+              fit: BoxFit.cover,
+              color: Colors.black.withValues(alpha: 0.4),
+              colorBlendMode: BlendMode.darken,
             ),
           ),
-          
+
           SafeArea(
             child: Column(
               children: [
                 _buildAppBar(),
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 10.0,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -95,21 +97,24 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               child: const CircleAvatar(
                 radius: 24,
                 backgroundColor: Colors.white10,
-                child: Icon(Icons.person, color: Colors.white, size: 30), 
+                child: Icon(Icons.person, color: Colors.white, size: 30),
               ),
             ),
             16.widthBox,
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                "WELCOME,".text.color(Colors.white54).size(12).letterSpacing(1).make(),
+                "WELCOME,".text
+                    .color(Colors.white54)
+                    .size(12)
+                    .letterSpacing(1)
+                    .make(),
                 "ALEX J.".text.white.xl2.bold.letterSpacing(1).make(),
               ],
             ),
           ],
         ),
-        (_isDutyOn ? "ON DUTY" : "OFF DUTY")
-            .text
+        (_isDutyOn ? "ON DUTY" : "OFF DUTY").text
             .color(_isDutyOn ? Colors.greenAccent : Colors.white54)
             .bold
             .make(),
@@ -118,143 +123,170 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   }
 
   Widget _buildStartDutyCard() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.cyan.withOpacity(0.5), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.cyan.withOpacity(0.1),
-            blurRadius: 20,
-            spreadRadius: 2,
-          )
-        ],
-      ),
-      child: Column(
-        children: [
-          // ON / OFF toggle
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.black45,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.cyan.withOpacity(0.3)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                "ON".text.color(_isDutyOn ? Colors.cyan : Colors.white54).bold.make(),
-                " / ".text.color(Colors.white30).make(),
-                "OFF".text.color(!_isDutyOn ? Colors.cyan : Colors.white54).bold.make(),
-              ],
-            ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.cyan.withOpacity(0.5), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.cyan.withOpacity(0.1),
+                blurRadius: 20,
+                spreadRadius: 2,
+              ),
+            ],
           ),
-          24.heightBox,
-          // Start Duty Button
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _isDutyOn = !_isDutyOn;
-              });
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: _isDutyOn 
-                      ? [Colors.redAccent, Colors.orangeAccent]
-                      : [Colors.cyan.shade400, Colors.tealAccent],
+          child: Column(
+            children: [
+              // ON / OFF toggle
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
                 ),
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: (_isDutyOn ? Colors.redAccent : Colors.cyan).withOpacity(0.4),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
-                  )
-                ],
+                decoration: BoxDecoration(
+                  color: Colors.black45,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.cyan.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    "ON".text
+                        .color(_isDutyOn ? Colors.cyan : Colors.white54)
+                        .bold
+                        .make(),
+                    " / ".text.color(Colors.white30).make(),
+                    "OFF".text
+                        .color(!_isDutyOn ? Colors.cyan : Colors.white54)
+                        .bold
+                        .make(),
+                  ],
+                ),
               ),
-              child: Center(
-                child: (_isDutyOn ? "END DUTY" : "START DUTY")
-                    .text
-                    .xl2
-                    .bold
-                    .color(Colors.black87)
-                    .make(),
+              24.heightBox,
+              // Start Duty Button
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isDutyOn = !_isDutyOn;
+                  });
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: _isDutyOn
+                          ? [Colors.redAccent, Colors.orangeAccent]
+                          : [Colors.cyan.shade400, Colors.tealAccent],
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (_isDutyOn ? Colors.redAccent : Colors.cyan)
+                            .withOpacity(0.4),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: (_isDutyOn ? "END DUTY" : "START DUTY").text.xl2.bold
+                        .color(Colors.black87)
+                        .make(),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     ).animate().fade(duration: 500.ms).slideY(begin: 0.1, end: 0);
   }
 
   Widget _buildMeterReadingCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          "METER READING (KM)".text.bold.white.letterSpacing(1).make(),
-          const Divider(color: Colors.white12, height: 24, thickness: 1),
-          
-          "Current Reading".text.color(Colors.white60).make(),
-          8.heightBox,
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white10),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Digital Glowing Text
+              "METER READING (KM)".text.bold.white.letterSpacing(1).make(),
+              const Divider(color: Colors.white12, height: 24, thickness: 1),
+
+              "Current Reading".text.color(Colors.white60).make(),
+              8.heightBox,
               Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "24,567.8",
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.greenAccent,
-                      shadows: [
-                        Shadow(color: Colors.greenAccent.withOpacity(0.6), blurRadius: 10),
-                      ],
-                    ),
+                  // Digital Glowing Text
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        "24,567.8",
+                        style: GoogleFonts.shareTechMono(
+                          fontSize: 34,
+                          color: Colors.greenAccent,
+                          shadows: [
+                            Shadow(
+                              color: Colors.greenAccent.withOpacity(0.6),
+                              blurRadius: 10,
+                            ),
+                          ],
+                        ),
+                      ),
+                      4.widthBox,
+                      "KM".text.color(Colors.greenAccent).bold.make(),
+                    ],
                   ),
-                  4.widthBox,
-                  "KM".text.color(Colors.greenAccent).bold.make(),
+                  // Log New Button
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.cyan.withOpacity(0.3)),
+                    ),
+                    child: "LOG NEW".text.bold.color(Colors.cyanAccent).make(),
+                  ),
                 ],
               ),
-              // Log New Button
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.cyan.withOpacity(0.3)),
+              16.heightBox,
+              Align(
+                alignment: Alignment.centerRight,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    "Yesterday's Closing".text
+                        .color(Colors.white54)
+                        .size(12)
+                        .make(),
+                    "24,490.2 KM".text.white.bold.make(),
+                  ],
                 ),
-                child: "LOG NEW".text.bold.color(Colors.cyanAccent).make(),
               ),
             ],
           ),
-          16.heightBox,
-          Align(
-            alignment: Alignment.centerRight,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                "Yesterday's Closing".text.color(Colors.white54).size(12).make(),
-                "24,490.2 KM".text.white.bold.make(),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     ).animate().fade(delay: 200.ms).slideY(begin: 0.1, end: 0);
   }
@@ -265,34 +297,52 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       children: [
         "RECENT LOGS".text.color(Colors.white54).letterSpacing(1).make(),
         12.heightBox,
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white10),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  "UPLOAD RECEIPT".text.bold.color(Colors.greenAccent).letterSpacing(1).make(),
-                  4.heightBox,
-                  "OPTIONAL".text.color(Colors.white54).size(12).letterSpacing(1).make(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      "UPLOAD RECEIPT".text.bold
+                          .color(Colors.greenAccent)
+                          .letterSpacing(1)
+                          .make(),
+                      4.heightBox,
+                      "OPTIONAL".text
+                          .color(Colors.white54)
+                          .size(12)
+                          .letterSpacing(1)
+                          .make(),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.greenAccent.withOpacity(0.3),
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.receipt_long,
+                      color: Colors.greenAccent,
+                    ),
+                  ),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
-                ),
-                child: const Icon(Icons.receipt_long, color: Colors.greenAccent),
-              )
-            ],
+            ),
           ),
         ),
       ],
@@ -310,7 +360,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.cyanAccent,
         unselectedItemColor: Colors.white54,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        selectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
         unselectedLabelStyle: const TextStyle(fontSize: 12),
         items: const [
           BottomNavigationBarItem(
