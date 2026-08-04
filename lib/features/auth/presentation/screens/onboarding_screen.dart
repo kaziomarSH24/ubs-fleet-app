@@ -5,6 +5,8 @@ import 'package:velocity_x/velocity_x.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/theme/app_colors.dart';
+
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -19,25 +21,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<Map<String, String>> onboardingData = [
     {
       "title": "Manage Your Fleet",
-      "description": "Easily assign and manage trips, drivers, and vehicles from a single intuitive dashboard.",
-      "lottie": "assets/lottie/car_green.json"
+      "description":
+          "Easily assign and manage trips, drivers, and vehicles from a single intuitive dashboard.",
+      "lottie": "assets/lottie/speedy_car.json",
     },
     {
       "title": "Expense Tracking",
-      "description": "Record and manage toll, fuel, and maintenance expenses instantly on the go.",
-      "lottie": "assets/lottie/money.json"
+      "description":
+          "Record and manage toll, fuel, and maintenance expenses instantly on the go.",
+      "lottie": "assets/lottie/money.json",
     },
     {
       "title": "Offline Syncing",
-      "description": "Works perfectly without internet. Syncs data automatically when you're back online.",
-      "lottie": "assets/lottie/sync.json"
+      "description":
+          "Works perfectly without internet. Syncs data automatically when you're back online.",
+      "lottie": "assets/lottie/sync.json",
     },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           // Background Gradient accents for premium look
@@ -49,10 +54,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.cyan.withOpacity(0.15),
+                color: AppColors.primary.withOpacity(0.15),
                 boxShadow: [
-                  BoxShadow(color: Colors.cyan.withOpacity(0.1), blurRadius: 100, spreadRadius: 50)
-                ]
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.1),
+                    blurRadius: 100,
+                    spreadRadius: 50,
+                  ),
+                ],
               ),
             ),
           ),
@@ -64,10 +73,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.purple.withOpacity(0.15),
+                color: AppColors.accentPurple.withOpacity(0.15),
                 boxShadow: [
-                  BoxShadow(color: Colors.purple.withOpacity(0.1), blurRadius: 100, spreadRadius: 50)
-                ]
+                  BoxShadow(
+                    color: AppColors.accentPurple.withOpacity(0.1),
+                    blurRadius: 100,
+                    spreadRadius: 50,
+                  ),
+                ],
               ),
             ),
           ),
@@ -89,19 +102,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       return Lottie.asset(
                         onboardingData[index]["lottie"]!,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => 
-                            const Icon(Icons.broken_image, size: 100, color: Colors.white24),
-                      ).p32().animate().scale(duration: 600.ms, curve: Curves.easeOutBack);
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
+                              Icons.broken_image,
+                              size: 100,
+                              color: Colors.white24,
+                            ),
+                      ).p32().animate().scale(
+                        duration: 600.ms,
+                        curve: Curves.easeOutBack,
+                      );
                     },
                   ),
                 ),
-                
+
                 // Bottom Content Card (Glassmorphism style)
                 Expanded(
                   flex: 4,
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 32,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.03),
                       borderRadius: const BorderRadius.only(
@@ -123,13 +146,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               height: 6,
                               width: _currentPage == index ? 24 : 8,
                               decoration: BoxDecoration(
-                                color: _currentPage == index ? Colors.cyan : Colors.white24,
+                                color: _currentPage == index
+                                    ? AppColors.primary
+                                    : Colors.white24,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                             ),
                           ),
                         ).animate().fade(duration: 500.ms),
-                        
+
                         32.heightBox,
 
                         // Title & Desc (Animated on page change)
@@ -142,21 +167,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   .text
                                   .xl3
                                   .bold
-                                  .white
+                                  .color(AppColors.textPrimary)
                                   .make()
                                   .animate()
-                                  .slideY(begin: 0.3, end: 0, duration: 400.ms, curve: Curves.easeOut)
+                                  .slideY(
+                                    begin: 0.3,
+                                    end: 0,
+                                    duration: 400.ms,
+                                    curve: Curves.easeOut,
+                                  )
                                   .fade(duration: 400.ms),
                               16.heightBox,
                               onboardingData[_currentPage]["description"]!
                                   .text
                                   .lg
-                                  .color(Colors.white60)
+                                  .color(AppColors.textSecondary)
                                   .center
                                   .textStyle(const TextStyle(height: 1.4))
                                   .make()
                                   .animate()
-                                  .slideY(begin: 0.3, end: 0, duration: 500.ms, curve: Curves.easeOut)
+                                  .slideY(
+                                    begin: 0.3,
+                                    end: 0,
+                                    duration: 500.ms,
+                                    curve: Curves.easeOut,
+                                  )
                                   .fade(duration: 500.ms),
                             ],
                           ),
@@ -173,25 +208,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     context.go('/login');
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.cyan,
+                                    backgroundColor: AppColors.primary,
                                     foregroundColor: Colors.black,
                                     elevation: 10,
-                                    shadowColor: Colors.cyan.withOpacity(0.5),
-                                    minimumSize: const Size(double.infinity, 56),
+                                    shadowColor: AppColors.primary.withOpacity(
+                                      0.5,
+                                    ),
+                                    minimumSize: const Size(
+                                      double.infinity,
+                                      56,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                   ),
                                   child: "Get Started".text.xl.bold.make(),
-                                ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack)
+                                ).animate().scale(
+                                  duration: 400.ms,
+                                  curve: Curves.easeOutBack,
+                                )
                               : Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     TextButton(
                                       onPressed: () {
                                         _pageController.animateToPage(
                                           onboardingData.length - 1,
-                                          duration: const Duration(milliseconds: 500),
+                                          duration: const Duration(
+                                            milliseconds: 500,
+                                          ),
                                           curve: Curves.easeInOut,
                                         );
                                       },
@@ -200,7 +246,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     InkWell(
                                       onTap: () {
                                         _pageController.nextPage(
-                                          duration: const Duration(milliseconds: 400),
+                                          duration: const Duration(
+                                            milliseconds: 400,
+                                          ),
                                           curve: Curves.easeInOut,
                                         );
                                       },
@@ -209,18 +257,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                         padding: const EdgeInsets.all(16),
                                         decoration: const BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: Colors.cyan,
+                                          color: AppColors.primary,
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.cyan,
+                                              color: AppColors.primary,
                                               blurRadius: 10,
                                               spreadRadius: -2,
-                                            )
-                                          ]
+                                            ),
+                                          ],
                                         ),
-                                        child: const Icon(Icons.arrow_forward_ios, color: Colors.black, size: 20),
+                                        child: const Icon(
+                                          Icons.arrow_forward_ios,
+                                          color: Colors.black,
+                                          size: 20,
+                                        ),
                                       ),
-                                    )
+                                    ),
                                   ],
                                 ),
                         ),

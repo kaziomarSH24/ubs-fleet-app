@@ -3,6 +3,10 @@ import 'package:velocity_x/velocity_x.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/widgets/primary_button.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -14,7 +18,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _obscureText = true;
 
   void _handleLogin() async {
     setState(() => _isLoading = true);
@@ -27,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           // Background Gradient accents
@@ -39,9 +42,9 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.cyan.withOpacity(0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 boxShadow: [
-                  BoxShadow(color: Colors.cyan.withOpacity(0.1), blurRadius: 100, spreadRadius: 50)
+                  BoxShadow(color: AppColors.primary.withOpacity(0.1), blurRadius: 100, spreadRadius: 50)
                 ]
               ),
             ),
@@ -62,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.cyan.withOpacity(0.3),
+                              color: AppColors.primary.withOpacity(0.3),
                               blurRadius: 40,
                               spreadRadius: 5,
                             )
@@ -85,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         .text
                         .xl4
                         .bold
-                        .white
+                        .color(AppColors.textPrimary)
                         .center
                         .make()
                         .animate()
@@ -97,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     "Sign in to manage your fleet"
                         .text
                         .lg
-                        .color(Colors.white60)
+                        .color(AppColors.textSecondary)
                         .center
                         .make()
                         .animate()
@@ -107,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     48.heightBox,
 
                     // Email Field
-                    _buildTextField(
+                    CustomTextField(
                       controller: _emailController,
                       hint: "Email Address",
                       icon: Icons.email_outlined,
@@ -116,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     24.heightBox,
 
                     // Password Field
-                    _buildTextField(
+                    CustomTextField(
                       controller: _passwordController,
                       hint: "Password",
                       icon: Icons.lock_outline,
@@ -130,35 +133,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {},
-                        child: "Forgot Password?".text.color(Colors.cyan).make(),
+                        child: "Forgot Password?".text.color(AppColors.primary).make(),
                       ),
                     ).animate().fade(delay: 600.ms),
 
                     32.heightBox,
 
                     // Login Button
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _handleLogin,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.cyan,
-                        foregroundColor: Colors.black,
-                        elevation: 10,
-                        shadowColor: Colors.cyan.withOpacity(0.5),
-                        minimumSize: const Size(double.infinity, 56),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.black,
-                                strokeWidth: 2.5,
-                              ),
-                            )
-                          : "Login".text.xl.bold.make(),
+                    PrimaryButton(
+                      text: "Login",
+                      onPressed: _handleLogin,
+                      isLoading: _isLoading,
                     ).animate().fade(delay: 700.ms).scale(curve: Curves.easeOutBack),
                   ],
                 ),
@@ -166,47 +151,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    bool isPassword = false,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: isPassword && _obscureText,
-        style: const TextStyle(color: Colors.white),
-        keyboardType: isPassword ? TextInputType.text : TextInputType.emailAddress,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
-          prefixIcon: Icon(icon, color: Colors.cyan),
-          suffixIcon: isPassword
-              ? IconButton(
-                  icon: Icon(
-                    _obscureText ? Icons.visibility_off : Icons.visibility,
-                    color: Colors.white.withOpacity(0.4),
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _obscureText = !_obscureText;
-                    });
-                  },
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        ),
       ),
     );
   }
