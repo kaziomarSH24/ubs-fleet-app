@@ -64,8 +64,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                         24.heightBox,
                         _buildMeterReadingCard(l10n),
                         24.heightBox,
-                        _buildRecentLogsSection(l10n),
-                        24.heightBox,
                       ],
                     ),
                   ),
@@ -416,42 +414,4 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     ).animate().fade(delay: 200.ms).slideY(begin: 0.1, end: 0);
   }
 
-  Widget _buildRecentLogsSection(AppLocalizations l10n) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        l10n.recentLogs.text.color(Colors.white54).letterSpacing(1).make(),
-        12.heightBox,
-        ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      l10n.uploadReceipt.text.bold
-                          .color(Colors.greenAccent)
-                          .letterSpacing(1)
-                          .make(),
-                      color: Colors.greenAccent,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    ).animate().fade(delay: 400.ms).slideY(begin: 0.1, end: 0);
-  }
 }
