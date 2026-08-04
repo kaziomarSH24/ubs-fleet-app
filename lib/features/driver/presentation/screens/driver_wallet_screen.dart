@@ -56,8 +56,13 @@ class DriverWalletScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Balance Card
+                    // Current Balance Card
                     _buildBalanceCard(l10n),
+                    
+                    20.heightBox,
+                    
+                    // Previous Month Settlement Card
+                    _buildPreviousMonthSettlement(l10n),
                     
                     30.heightBox,
                     
@@ -209,5 +214,52 @@ class DriverWalletScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildPreviousMonthSettlement(AppLocalizations? l10n) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.2), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.history, color: Colors.cyanAccent, size: 20),
+              8.widthBox,
+              "July 2026 Settlement".text.color(Colors.cyanAccent).bold.letterSpacing(1).make(),
+            ],
+          ),
+          16.heightBox,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              "Total Advances Taken:".text.color(Colors.white54).make(),
+              "৳ 8,000".text.white.bold.make(),
+            ],
+          ),
+          8.heightBox,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              "Total Salary/Earnings:".text.color(Colors.white54).make(),
+              "৳ 25,000".text.white.bold.make(),
+            ],
+          ),
+          const Divider(color: Colors.white10, height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              "Net Payable (You will get):".text.color(Colors.greenAccent).make(),
+              "৳ 17,000".text.color(Colors.greenAccent).bold.xl.make(),
+            ],
+          ),
+        ],
+      ),
+    ).animate().fade(delay: 600.ms).slideY(begin: 0.1, end: 0);
   }
 }
