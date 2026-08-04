@@ -25,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
     await Future.delayed(const Duration(seconds: 2));
     if (mounted) setState(() => _isLoading = false);
     // TODO: Navigate based on Role (Admin vs Driver)
+    if (mounted) context.go('/driver-home'); // Temp navigation for preview
   }
 
   @override
