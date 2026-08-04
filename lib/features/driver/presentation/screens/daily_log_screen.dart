@@ -101,7 +101,11 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
               onSurface: Colors.white,
             ),
           ),
-          child: child!,
+          child: Localizations.override(
+            context: context,
+            locale: const Locale('en', 'US'),
+            child: child!,
+          ),
         );
       }
     );
