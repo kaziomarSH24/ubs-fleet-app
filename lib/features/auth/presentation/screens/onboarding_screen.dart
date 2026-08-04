@@ -153,7 +153,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   .lg
                                   .color(Colors.white60)
                                   .center
-                                  .heightMultiplier(1.4)
+                                  .textStyle(const TextStyle(height: 1.4))
                                   .make()
                                   .animate()
                                   .slideY(begin: 0.3, end: 0, duration: 500.ms, curve: Curves.easeOut)
@@ -170,7 +170,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           child: _currentPage == onboardingData.length - 1
                               ? ElevatedButton(
                                   onPressed: () {
-                                    // TODO: Navigate to Auth
+                                    context.go('/login');
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.cyan,
