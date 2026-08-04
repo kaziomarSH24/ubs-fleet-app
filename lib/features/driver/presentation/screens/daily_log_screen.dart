@@ -23,7 +23,6 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   final _endKmController = TextEditingController();
   final _octaneKmController = TextEditingController();
   final _tollParkingController = TextEditingController();
-  final _fuelAmountController = TextEditingController();
   
   int _totalRun = 0;
   int _cngRun = 0;
@@ -125,7 +124,6 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
     _endKmController.dispose();
     _octaneKmController.dispose();
     _tollParkingController.dispose();
-    _fuelAmountController.dispose();
     super.dispose();
   }
 
@@ -374,13 +372,6 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                           controller: _tollParkingController,
                           hint: "Toll / Parking (৳)",
                           icon: Icons.local_parking,
-                          keyboardType: TextInputType.number,
-                        ),
-                        12.heightBox,
-                        CustomTextField(
-                          controller: _fuelAmountController,
-                          hint: "Fuel Amount (৳)",
-                          icon: Icons.local_gas_station,
                           keyboardType: TextInputType.number,
                         ),
                       ],
