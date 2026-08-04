@@ -337,6 +337,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'CANCEL'**
   String get cancel;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MY PROFILE'**
+  String get profileTitle;
+
+  /// No description provided for @personalDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'PERSONAL DETAILS'**
+  String get personalDetails;
+
+  /// No description provided for @assignedVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'ASSIGNED VEHICLE'**
+  String get assignedVehicle;
+
+  /// No description provided for @phoneNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get phoneNumber;
+
+  /// No description provided for @licenseNo.
+  ///
+  /// In en, this message translates to:
+  /// **'License No'**
+  String get licenseNo;
+
+  /// No description provided for @vehicleModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle Model'**
+  String get vehicleModel;
+
+  /// No description provided for @plateNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Plate Number'**
+  String get plateNumber;
+
+  /// No description provided for @fuelType.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel Type'**
+  String get fuelType;
+
+  /// No description provided for @logout.
+  ///
+  /// In en, this message translates to:
+  /// **'LOGOUT'**
+  String get logout;
+
+  /// No description provided for @tripHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'TRIP HISTORY'**
+  String get tripHistory;
+
+  /// No description provided for @navWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get navWallet;
+
+  /// No description provided for @requestAdvance.
+  ///
+  /// In en, this message translates to:
+  /// **'REQUEST ADVANCE'**
+  String get requestAdvance;
+
+  /// No description provided for @recentAdvances.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Advances'**
+  String get recentAdvances;
+
+  /// No description provided for @totalAdvanceThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Advance (This Month)'**
+  String get totalAdvanceThisMonth;
 }
 
 class _AppLocalizationsDelegate

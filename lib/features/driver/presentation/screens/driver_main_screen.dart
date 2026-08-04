@@ -43,12 +43,13 @@ class DriverMainScreen extends StatelessWidget {
               label: l10n?.navDashboard ?? 'Dashboard',
             ),
             BottomNavigationBarItem(
-              icon: const Padding(padding: EdgeInsets.only(bottom: 4.0), child: Icon(Icons.account_balance_wallet)),
-              label: l10n?.navWallet ?? 'Wallet',
+              icon: const Padding(padding: EdgeInsets.only(bottom: 4.0), child: Icon(Icons.receipt_long_outlined)),
+              activeIcon: const Padding(padding: EdgeInsets.only(bottom: 4.0), child: Icon(Icons.receipt_long, color: Colors.cyanAccent)),
+              label: l10n?.navLogs ?? 'Logs',
             ),
             BottomNavigationBarItem(
-              icon: const Padding(padding: EdgeInsets.only(bottom: 4.0), child: Icon(Icons.receipt_long)),
-              label: l10n?.navLogs ?? 'Logs',
+              icon: const Padding(padding: EdgeInsets.only(bottom: 4.0), child: Icon(Icons.account_balance_wallet)),
+              label: l10n?.navWallet ?? 'Wallet',
             ),
             BottomNavigationBarItem(
               icon: const Padding(padding: EdgeInsets.only(bottom: 4.0), child: Icon(Icons.person_outline)),
@@ -57,8 +58,8 @@ class DriverMainScreen extends StatelessWidget {
           ],
           onTap: (index) {
             if (index == 0) context.go('/driver-home');
-            if (index == 1) context.go('/driver/wallet');
-            if (index == 2) context.go('/driver/logs');
+            if (index == 1) context.go('/driver/logs');
+            if (index == 2) context.go('/driver/wallet');
             if (index == 3) context.go('/driver/account');
           },
         ),

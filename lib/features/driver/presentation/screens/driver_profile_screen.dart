@@ -73,7 +73,8 @@ class DriverProfileScreen extends ConsumerWidget {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(20),
                           onTap: () {
-                            ref.read(localeProvider.notifier).toggleLocale();
+                            final current = ref.read(localeProvider);
+                            ref.read(localeProvider.notifier).state = Locale(current.languageCode == 'en' ? 'bn' : 'en');
                           },
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 12.0),

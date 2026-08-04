@@ -128,4 +128,46 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get cancel => 'বাতিল';
+
+  @override
+  String get profileTitle => 'আমার প্রোফাইল';
+
+  @override
+  String get personalDetails => 'ব্যক্তিগত তথ্যাদি';
+
+  @override
+  String get assignedVehicle => 'নির্ধারিত গাড়ি';
+
+  @override
+  String get phoneNumber => 'মোবাইল নম্বর';
+
+  @override
+  String get licenseNo => 'লাইসেন্স নম্বর';
+
+  @override
+  String get vehicleModel => 'গাড়ির মডেল';
+
+  @override
+  String get plateNumber => 'প্লেট নম্বর';
+
+  @override
+  String get fuelType => 'জ্বালানির ধরন';
+
+  @override
+  String get logout => 'লগআউট';
+
+  @override
+  String get tripHistory => 'ট্রিপ হিস্ট্রি';
+
+  @override
+  String get navWallet => 'মানিব্যাগ';
+
+  @override
+  String get requestAdvance => 'অ্যাডভান্স রিকোয়েস্ট';
+
+  @override
+  String get recentAdvances => 'সাম্প্রতিক অ্যাডভান্স';
+
+  @override
+  String get totalAdvanceThisMonth => 'মোট অ্যাডভান্স (চলতি মাস)';
 }

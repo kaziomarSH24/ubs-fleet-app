@@ -128,4 +128,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancel => 'CANCEL';
+
+  @override
+  String get profileTitle => 'MY PROFILE';
+
+  @override
+  String get personalDetails => 'PERSONAL DETAILS';
+
+  @override
+  String get assignedVehicle => 'ASSIGNED VEHICLE';
+
+  @override
+  String get phoneNumber => 'Phone Number';
+
+  @override
+  String get licenseNo => 'License No';
+
+  @override
+  String get vehicleModel => 'Vehicle Model';
+
+  @override
+  String get plateNumber => 'Plate Number';
+
+  @override
+  String get fuelType => 'Fuel Type';
+
+  @override
+  String get logout => 'LOGOUT';
+
+  @override
+  String get tripHistory => 'TRIP HISTORY';
+
+  @override
+  String get navWallet => 'Wallet';
+
+  @override
+  String get requestAdvance => 'REQUEST ADVANCE';
+
+  @override
+  String get recentAdvances => 'Recent Advances';
+
+  @override
+  String get totalAdvanceThisMonth => 'Total Advance (This Month)';
 }
