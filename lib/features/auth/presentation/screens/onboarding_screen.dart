@@ -20,12 +20,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       "title": "Manage Your Fleet",
       "description": "Easily assign and manage trips, drivers, and vehicles from a single intuitive dashboard.",
-      "lottie": "assets/lottie/track.json"
+      "lottie": "assets/lottie/car_green.json"
     },
     {
       "title": "Expense Tracking",
       "description": "Record and manage toll, fuel, and maintenance expenses instantly on the go.",
-      "lottie": "assets/lottie/expense.json"
+      "lottie": "assets/lottie/money.json"
     },
     {
       "title": "Offline Syncing",
