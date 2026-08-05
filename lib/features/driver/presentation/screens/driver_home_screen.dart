@@ -59,13 +59,13 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _buildProfileSection(l10n),
-                        30.heightBox,
+                        16.heightBox,
                         _buildStartDutyCard(l10n),
-                        24.heightBox,
+                        16.heightBox,
                         _buildMeterReadingCard(l10n),
-                        24.heightBox,
+                        16.heightBox,
                         _buildMonthlyStatsCard(l10n),
-                        24.heightBox,
+                        16.heightBox,
                       ],
                     ),
                   ),
@@ -380,6 +380,19 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                       ),
                     ),
                   ),
+                  12.widthBox,
+                  // Log New Button
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.cyan.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.cyan.withValues(alpha: 0.3)),
+                    ),
+                    child: l10n.logNew.text.bold.color(Colors.cyanAccent).make(),
+                  ).onTap(() {
+                    context.push('/driver/expense');
+                  }),
                 ],
               ),
               16.heightBox,
