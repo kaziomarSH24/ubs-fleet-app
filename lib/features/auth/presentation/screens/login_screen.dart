@@ -43,7 +43,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await authService.signInWithIdOrPhone(input: input, pin: pin);
       
       if (mounted) {
-        context.go('/driver'); // Navigate to driver home on success
+        context.go('/driver-home'); // Navigate to driver home on success
       }
     } on AuthException catch (e) {
       if (mounted) {
@@ -186,7 +186,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       text: l10n.loginBtn,
                       onPressed: _handleLogin,
                       isLoading: _isLoading,
-                    ).animate().fade(delay: 700.ms).scale(curve: Curves.easeOutBack),
+                    ),
                   ],
                 ),
               ),
