@@ -64,6 +64,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                         24.heightBox,
                         _buildMeterReadingCard(l10n),
                         24.heightBox,
+                        _buildMonthlyStatsCard(l10n),
+                        24.heightBox,
                       ],
                     ),
                   ),
@@ -378,19 +380,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                       ),
                     ),
                   ),
-                  12.widthBox,
-                  // Log New Button
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.cyan.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.cyan.withValues(alpha: 0.3)),
-                    ),
-                    child: l10n.logNew.text.bold.color(Colors.cyanAccent).make(),
-                  ).onTap(() {
-                    context.push('/driver/expense');
-                  }),
                 ],
               ),
               16.heightBox,
@@ -412,6 +401,58 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         ),
       ),
     ).animate().fade(delay: 200.ms).slideY(begin: 0.1, end: 0);
+  }
+
+  Widget _buildMonthlyStatsCard(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        "MONTHLY STATS".text.color(Colors.white54).letterSpacing(1).make(),
+        12.heightBox,
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Column(
+                    children: [
+                      const Icon(Icons.speed, color: Colors.cyanAccent, size: 28),
+                      8.heightBox,
+                      "Total KM".text.color(Colors.white70).size(12).make(),
+                      4.heightBox,
+                      "1,250".text.white.bold.xl.make(),
+                    ],
+                  ),
+                  Container(
+                    width: 1,
+                    height: 50,
+                    color: Colors.white12,
+                  ),
+                  Column(
+                    children: [
+                      const Icon(Icons.access_time, color: Colors.greenAccent, size: 28),
+                      8.heightBox,
+                      "Duty Hours".text.color(Colors.white70).size(12).make(),
+                      4.heightBox,
+                      "120 Hrs".text.white.bold.xl.make(),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    ).animate().fade(delay: 300.ms).slideY(begin: 0.1, end: 0);
   }
 
 }
