@@ -27,6 +27,7 @@ class DriverMainScreen extends StatelessWidget {
     final currentIndex = calculateSelectedIndex(context);
 
     return Scaffold(
+      extendBody: true,
       body: child,
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
@@ -34,7 +35,7 @@ class DriverMainScreen extends StatelessWidget {
           highlightColor: Colors.transparent,
         ),
         child: BottomNavigationBar(
-          backgroundColor: const Color(0xFF0B1320),
+          backgroundColor: const Color(0xFF070D14), // Darker color matching profile
           type: BottomNavigationBarType.fixed,
           selectedItemColor: Colors.cyanAccent,
           unselectedItemColor: Colors.white54,

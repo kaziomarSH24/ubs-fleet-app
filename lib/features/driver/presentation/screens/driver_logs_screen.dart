@@ -105,7 +105,7 @@ class _DriverLogsScreenState extends State<DriverLogsScreen> {
             // Logs List
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10).copyWith(bottom: 100),
                 itemCount: mockLogs.length,
                 itemBuilder: (context, index) {
                   final log = mockLogs[index];

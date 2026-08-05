@@ -28,41 +28,22 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: const Color(
-        0xFF0B1320,
-      ), // Darker background similar to mockup
+      backgroundColor: const Color(0xFF070D14), // Darker background similar to profile
       body: Stack(
         children: [
-          // Background Gradient accents
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.05),
-                boxShadow: [
-                  BoxShadow(color: AppColors.primary.withValues(alpha: 0.05), blurRadius: 100, spreadRadius: 50)
-                ]
+          // Real Background Image
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/driver_bg.jpg'),
+                fit: BoxFit.cover,
               ),
             ),
           ),
-          Positioned(
-            bottom: -100,
-            left: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.greenAccent.withValues(alpha: 0.05),
-                boxShadow: [
-                  BoxShadow(color: Colors.greenAccent.withValues(alpha: 0.05), blurRadius: 100, spreadRadius: 50)
-                ]
-              ),
-            ),
+          
+          // Heavy Glass Overlay (to make the top blend smoothly)
+          Container(
+            color: const Color(0xFF070D14).withValues(alpha: 0.85),
           ),
 
           SafeArea(
@@ -74,7 +55,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20.0,
                       vertical: 10.0,
-                    ),
+                    ).copyWith(bottom: 100), // Padding for extendBody bottom nav
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [

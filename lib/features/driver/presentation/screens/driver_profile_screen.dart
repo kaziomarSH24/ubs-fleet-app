@@ -51,7 +51,7 @@ class DriverProfileScreen extends ConsumerWidget {
           // Content
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20).copyWith(bottom: 100),
               child: Column(
                 children: [
                   // App Bar
