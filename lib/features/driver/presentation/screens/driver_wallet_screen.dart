@@ -4,7 +4,6 @@ import 'package:velocity_x/velocity_x.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../l10n/app_localizations.dart';
 
-import '../../../../core/theme/app_colors.dart';
 
 class DriverWalletScreen extends StatelessWidget {
   const DriverWalletScreen({super.key});

@@ -329,7 +329,7 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                                 });
                               },
                               activeTrackColor: Colors.cyanAccent.withValues(alpha: 0.5),
-                              activeColor: Colors.cyanAccent,
+                              activeThumbColor: Colors.cyanAccent,
                             ),
                           ],
                         ).pSymmetric(h: 8),

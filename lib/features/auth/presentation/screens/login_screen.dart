@@ -1,31 +1,71 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../data/services/auth_service.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _idOrPhoneController = TextEditingController();
+  final _pinController = TextEditingController();
   bool _isLoading = false;
 
-  void _handleLogin() async {
+  Future<void> _handleLogin() async {
+    final input = _idOrPhoneController.text.trim();
+    final pin = _pinController.text.trim();
+
+    if (input.isEmpty || pin.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('অনুগ্রহ করে আইডি/ফোন এবং পিন দিন।')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
-    // TODO: Implement Supabase Auth login
-    await Future.delayed(const Duration(seconds: 2));
-    if (mounted) setState(() => _isLoading = false);
-    // TODO: Navigate based on Role (Admin vs Driver)
-    if (mounted) context.go('/driver-home'); // Temp navigation for preview
+
+    try {
+      final authService = ref.read(authServiceProvider);
+      await authService.signInWithIdOrPhone(input: input, pin: pin);
+      
+      if (mounted) {
+        context.go('/driver'); // Navigate to driver home on success
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('লগিন ব্যর্থ হয়েছে: ${e.message}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('একটি সমস্যা হয়েছে: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _idOrPhoneController.dispose();
+    _pinController.dispose();
+    super.dispose();
   }
 
   @override
@@ -34,23 +74,14 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Background Gradient accents
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.1),
-                boxShadow: [
-                  BoxShadow(color: AppColors.primary.withValues(alpha: 0.1), blurRadius: 100, spreadRadius: 50)
-                ]
-              ),
+          // Background Image / Gradient
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/bg.jpg', // Assuming this is the bg used in the app
+              fit: BoxFit.cover,
             ),
           ),
-
+          
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -85,11 +116,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     
                     40.heightBox,
                     
-                    "Welcome Back"
+                    "স্বাগতম"
                         .text
                         .xl4
                         .bold
-                        .color(AppColors.textPrimary)
+                        .white
                         .center
                         .make()
                         .animate()
@@ -98,10 +129,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     
                     8.heightBox,
                     
-                    "Sign in to manage your fleet"
+                    "আপনার অ্যাকাউন্টে লগিন করুন"
                         .text
                         .lg
-                        .color(AppColors.textSecondary)
+                        .color(Colors.white70)
                         .center
                         .make()
                         .animate()
@@ -110,39 +141,28 @@ class _LoginScreenState extends State<LoginScreen> {
                     
                     48.heightBox,
 
-                    // Email Field
+                    // ID or Phone Field
                     CustomTextField(
-                      controller: _emailController,
-                      hint: "Email Address",
-                      icon: Icons.email_outlined,
+                      controller: _idOrPhoneController,
+                      hint: "Employee ID বা Phone Number",
+                      icon: Icons.person_outline,
                     ).animate().fade(delay: 400.ms).slideY(begin: 0.3, end: 0),
                     
                     24.heightBox,
 
-                    // Password Field
+                    // PIN Field
                     CustomTextField(
-                      controller: _passwordController,
-                      hint: "Password",
+                      controller: _pinController,
+                      hint: "PIN (পিন)",
                       icon: Icons.lock_outline,
                       isPassword: true,
                     ).animate().fade(delay: 500.ms).slideY(begin: 0.3, end: 0),
                     
-                    16.heightBox,
-
-                    // Forgot Password
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
-                        child: "Forgot Password?".text.color(AppColors.primary).make(),
-                      ),
-                    ).animate().fade(delay: 600.ms),
-
                     32.heightBox,
 
                     // Login Button
                     PrimaryButton(
-                      text: "Login",
+                      text: "লগিন করুন",
                       onPressed: _handleLogin,
                       isLoading: _isLoading,
                     ).animate().fade(delay: 700.ms).scale(curve: Curves.easeOutBack),

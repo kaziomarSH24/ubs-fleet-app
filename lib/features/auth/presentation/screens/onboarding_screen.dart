@@ -211,8 +211,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     backgroundColor: AppColors.primary,
                                     foregroundColor: Colors.black,
                                     elevation: 10,
-                                    shadowColor: AppColors.primary.withOpacity(
-                                      0.5,
+                                    shadowColor: AppColors.primary.withValues(
+                                      alpha: 0.5,
                                     ),
                                     minimumSize: const Size(
                                       double.infinity,

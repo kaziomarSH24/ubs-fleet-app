@@ -136,8 +136,7 @@ class _DriverLogsScreenState extends State<DriverLogsScreen> {
               onPrimary: Colors.black,
               surface: Color(0xFF0F1A2C),
               onSurface: Colors.white,
-            ),
-            dialogBackgroundColor: const Color(0xFF0B1320),
+            ), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF0B1320)),
           ),
           child: child!,
         );
