@@ -29,77 +29,52 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF070D14), // Darker background similar to profile
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: l10n.appTitle.text.bold.letterSpacing(1.5).white.make(),
-        actions: [
-          Consumer(
-            builder: (context, ref, child) {
-              final locale = ref.watch(localeProvider);
-              final isEn = locale.languageCode == 'en';
-              return Center(
-                child: GestureDetector(
-                  onTap: () {
-                    ref.read(localeProvider.notifier).state = Locale(isEn ? 'bn' : 'en');
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 20),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.cyan.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.cyan.withValues(alpha: 0.4)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+      body: Stack(
+        children: [
+          // Real Background Image
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/driver_bg.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          
+          // Heavy Glass Overlay (to make the top blend smoothly)
+          Container(
+            color: const Color(0xFF070D14).withValues(alpha: 0.85),
+          ),
+
+          SafeArea(
+            child: Column(
+              children: [
+                _buildAppBar(l10n),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 10.0,
+                    ).copyWith(bottom: 100), // Padding for extendBody bottom nav
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Icon(Icons.language, size: 16, color: Colors.cyanAccent),
-                        const SizedBox(width: 6),
-                        Text(
-                          isEn ? "বাং" : "EN",
-                          style: const TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold),
-                        ),
+                        _buildProfileSection(l10n),
+                        16.heightBox,
+                        _buildStartDutyCard(l10n),
+                        16.heightBox,
+                        _buildMeterReadingCard(l10n),
+                        16.heightBox,
+                        _buildMonthlyStatsCard(l10n),
+                        16.heightBox,
                       ],
                     ),
                   ),
                 ),
-              );
-            }
-          ),
-        ],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: const AssetImage('assets/images/driver_bg.jpg'),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-              const Color(0xFF070D14).withValues(alpha: 0.85),
-              BlendMode.darken,
+              ],
             ),
           ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20.0,
-            vertical: 10.0,
-          ).copyWith(bottom: 100), // Padding for extendBody bottom nav
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildProfileSection(l10n),
-              16.heightBox,
-              _buildStartDutyCard(l10n),
-              16.heightBox,
-              _buildMeterReadingCard(l10n),
-              16.heightBox,
-              _buildMonthlyStatsCard(l10n),
-              16.heightBox,
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -157,7 +132,47 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     );
   }
 
-  // Removed custom app bar, now using real AppBar in Scaffold
+  Widget _buildAppBar(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const SizedBox(width: 28),
+          l10n.appTitle.text.bold.letterSpacing(1.5).white.make(),
+          Consumer(
+            builder: (context, ref, child) {
+              final locale = ref.watch(localeProvider);
+              final isEn = locale.languageCode == 'en';
+              return GestureDetector(
+                onTap: () {
+                  ref.read(localeProvider.notifier).state = Locale(isEn ? 'bn' : 'en');
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.cyan.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.cyan.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.language, size: 16, color: Colors.cyanAccent),
+                      const SizedBox(width: 6),
+                      Text(
+                        isEn ? "বাং" : "EN",
+                        style: const TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildProfileSection(AppLocalizations l10n) {
     return Row(
