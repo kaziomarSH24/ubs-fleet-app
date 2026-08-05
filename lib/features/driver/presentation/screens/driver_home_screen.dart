@@ -34,7 +34,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           image: DecorationImage(
             image: AssetImage('assets/images/driver_bg.jpg'),
             fit: BoxFit.cover,
-            opacity: 0.15,
+            opacity: 0.25,
           ),
         ),
         child: SafeArea(
