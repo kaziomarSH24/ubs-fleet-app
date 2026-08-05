@@ -21,15 +21,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _idOrPhoneController = TextEditingController();
   final _pinController = TextEditingController();
   bool _isLoading = false;
+  String? _errorMessage;
 
   Future<void> _handleLogin() async {
+    setState(() => _errorMessage = null);
+    
     final input = _idOrPhoneController.text.trim();
     final pin = _pinController.text.trim();
 
     if (input.isEmpty || pin.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('অনুগ্রহ করে আইডি/ফোন এবং পিন দিন।')),
-      );
+      setState(() => _errorMessage = 'অনুগ্রহ করে আইডি/ফোন এবং পিন দিন।');
       return;
     }
 
@@ -44,15 +45,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     } on AuthException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('লগিন ব্যর্থ হয়েছে: ${e.message}')),
-        );
+        setState(() {
+          if (e.message.contains('Invalid login credentials')) {
+            _errorMessage = 'ভুল আইডি/ফোন অথবা পিন দিয়েছেন।';
+          } else {
+            _errorMessage = 'লগিন ব্যর্থ হয়েছে: ${e.message}';
+          }
+        });
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('একটি সমস্যা হয়েছে: $e')),
-        );
+        setState(() => _errorMessage = 'একটি সমস্যা হয়েছে: $e');
       }
     } finally {
       if (mounted) {
@@ -77,7 +80,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           // Background Image / Gradient
           Positioned.fill(
             child: Image.asset(
-              'assets/images/bg.jpg', // Assuming this is the bg used in the app
+              'assets/images/driver_bg.jpg', // Fixed asset path
               fit: BoxFit.cover,
             ),
           ),
@@ -158,6 +161,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       isPassword: true,
                     ).animate().fade(delay: 500.ms).slideY(begin: 0.3, end: 0),
                     
+                    if (_errorMessage != null) ...[
+                      16.heightBox,
+                      _errorMessage!.text.color(Colors.redAccent).make().animate().fade(),
+                    ],
+
                     32.heightBox,
 
                     // Login Button
