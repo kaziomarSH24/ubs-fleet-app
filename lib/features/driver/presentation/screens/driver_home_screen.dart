@@ -33,13 +33,35 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       ), // Darker background similar to mockup
       body: Stack(
         children: [
-          // Real Background Image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/driver_bg.jpg',
-              fit: BoxFit.cover,
-              color: Colors.black.withValues(alpha: 0.4),
-              colorBlendMode: BlendMode.darken,
+          // Background Gradient accents
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary.withValues(alpha: 0.05),
+                boxShadow: [
+                  BoxShadow(color: AppColors.primary.withValues(alpha: 0.05), blurRadius: 100, spreadRadius: 50)
+                ]
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -100,
+            left: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.greenAccent.withValues(alpha: 0.05),
+                boxShadow: [
+                  BoxShadow(color: Colors.greenAccent.withValues(alpha: 0.05), blurRadius: 100, spreadRadius: 50)
+                ]
+              ),
             ),
           ),
 
@@ -319,7 +341,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ),
         ),
       ),
-    ).animate().fade(duration: 500.ms).slideY(begin: 0.1, end: 0);
+    );
   }
 
   Widget _buildMeterReadingCard(AppLocalizations l10n) {
@@ -411,7 +433,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ),
         ),
       ),
-    ).animate().fade(delay: 200.ms).slideY(begin: 0.1, end: 0);
+    );
   }
 
   Widget _buildMonthlyStatsCard(AppLocalizations l10n) {
@@ -463,7 +485,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ),
         ),
       ],
-    ).animate().fade(delay: 300.ms).slideY(begin: 0.1, end: 0);
+    );
   }
 
 }
