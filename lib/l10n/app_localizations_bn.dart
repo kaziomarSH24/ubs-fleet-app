@@ -170,4 +170,31 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get totalAdvanceThisMonth => 'মোট অ্যাডভান্স (চলতি মাস)';
+
+  @override
+  String get loginTitle => 'স্বাগতম';
+
+  @override
+  String get loginSubtitle => 'আপনার অ্যাকাউন্টে লগিন করুন';
+
+  @override
+  String get idOrPhoneLabel => 'Employee ID বা Phone Number';
+
+  @override
+  String get pinLabel => 'PIN (পিন)';
+
+  @override
+  String get loginBtn => 'লগিন করুন';
+
+  @override
+  String get errorEmptyInput => 'অনুগ্রহ করে আইডি/ফোন এবং পিন দিন।';
+
+  @override
+  String get errorInvalidCredentials => 'ভুল আইডি/ফোন অথবা পিন দিয়েছেন।';
+
+  @override
+  String get errorLoginFailed => 'লগিন ব্যর্থ হয়েছে: ';
+
+  @override
+  String get errorGeneric => 'একটি সমস্যা হয়েছে: ';
 }

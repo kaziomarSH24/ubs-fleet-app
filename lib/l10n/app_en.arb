@@ -55,5 +55,14 @@
   "navWallet": "Wallet",
   "requestAdvance": "REQUEST ADVANCE",
   "recentAdvances": "Recent Advances",
-  "totalAdvanceThisMonth": "Total Advance (This Month)"
+  "totalAdvanceThisMonth": "Total Advance (This Month)",
+  "loginTitle": "Welcome",
+  "loginSubtitle": "Login to your account",
+  "idOrPhoneLabel": "Employee ID or Phone Number",
+  "pinLabel": "PIN",
+  "loginBtn": "LOGIN",
+  "errorEmptyInput": "Please enter your ID/Phone and PIN.",
+  "errorInvalidCredentials": "Invalid ID/Phone or PIN.",
+  "errorLoginFailed": "Login failed: ",
+  "errorGeneric": "An error occurred: "
 }

@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/services/auth_service.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -24,13 +25,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   String? _errorMessage;
 
   Future<void> _handleLogin() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _errorMessage = null);
     
     final input = _idOrPhoneController.text.trim();
     final pin = _pinController.text.trim();
 
     if (input.isEmpty || pin.isEmpty) {
-      setState(() => _errorMessage = 'অনুগ্রহ করে আইডি/ফোন এবং পিন দিন।');
+      setState(() => _errorMessage = l10n.errorEmptyInput);
       return;
     }
 
@@ -47,15 +49,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         setState(() {
           if (e.message.contains('Invalid login credentials')) {
-            _errorMessage = 'ভুল আইডি/ফোন অথবা পিন দিয়েছেন।';
+            _errorMessage = l10n.errorInvalidCredentials;
           } else {
-            _errorMessage = 'লগিন ব্যর্থ হয়েছে: ${e.message}';
+            _errorMessage = '${l10n.errorLoginFailed}${e.message}';
           }
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'একটি সমস্যা হয়েছে: $e');
+        setState(() => _errorMessage = '${l10n.errorGeneric}$e');
       }
     } finally {
       if (mounted) {
@@ -73,15 +75,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Background Image / Gradient
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/driver_bg.jpg', // Fixed asset path
-              fit: BoxFit.cover,
+          // Background Gradient accents
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary.withValues(alpha: 0.1),
+                boxShadow: [
+                  BoxShadow(color: AppColors.primary.withValues(alpha: 0.1), blurRadius: 100, spreadRadius: 50)
+                ]
+              ),
             ),
           ),
           
@@ -119,7 +132,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     
                     40.heightBox,
                     
-                    "স্বাগতম"
+                    l10n.loginTitle
                         .text
                         .xl4
                         .bold
@@ -132,7 +145,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     
                     8.heightBox,
                     
-                    "আপনার অ্যাকাউন্টে লগিন করুন"
+                    l10n.loginSubtitle
                         .text
                         .lg
                         .color(Colors.white70)
@@ -147,7 +160,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     // ID or Phone Field
                     CustomTextField(
                       controller: _idOrPhoneController,
-                      hint: "Employee ID বা Phone Number",
+                      hint: l10n.idOrPhoneLabel,
                       icon: Icons.person_outline,
                     ).animate().fade(delay: 400.ms).slideY(begin: 0.3, end: 0),
                     
@@ -156,7 +169,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     // PIN Field
                     CustomTextField(
                       controller: _pinController,
-                      hint: "PIN (পিন)",
+                      hint: l10n.pinLabel,
                       icon: Icons.lock_outline,
                       isPassword: true,
                     ).animate().fade(delay: 500.ms).slideY(begin: 0.3, end: 0),
@@ -170,7 +183,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                     // Login Button
                     PrimaryButton(
-                      text: "লগিন করুন",
+                      text: l10n.loginBtn,
                       onPressed: _handleLogin,
                       isLoading: _isLoading,
                     ).animate().fade(delay: 700.ms).scale(curve: Curves.easeOutBack),

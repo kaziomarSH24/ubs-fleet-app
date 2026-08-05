@@ -421,6 +421,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total Advance (This Month)'**
   String get totalAdvanceThisMonth;
+
+  /// No description provided for @loginTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get loginTitle;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Login to your account'**
+  String get loginSubtitle;
+
+  /// No description provided for @idOrPhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee ID or Phone Number'**
+  String get idOrPhoneLabel;
+
+  /// No description provided for @pinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN'**
+  String get pinLabel;
+
+  /// No description provided for @loginBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'LOGIN'**
+  String get loginBtn;
+
+  /// No description provided for @errorEmptyInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your ID/Phone and PIN.'**
+  String get errorEmptyInput;
+
+  /// No description provided for @errorInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid ID/Phone or PIN.'**
+  String get errorInvalidCredentials;
+
+  /// No description provided for @errorLoginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Login failed: '**
+  String get errorLoginFailed;
+
+  /// No description provided for @errorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred: '**
+  String get errorGeneric;
 }
 
 class _AppLocalizationsDelegate

@@ -52,5 +52,14 @@
   "navWallet": "মানিব্যাগ",
   "requestAdvance": "অ্যাডভান্স রিকোয়েস্ট",
   "recentAdvances": "সাম্প্রতিক অ্যাডভান্স",
-  "totalAdvanceThisMonth": "মোট অ্যাডভান্স (চলতি মাস)"
+  "totalAdvanceThisMonth": "মোট অ্যাডভান্স (চলতি মাস)",
+  "loginTitle": "স্বাগতম",
+  "loginSubtitle": "আপনার অ্যাকাউন্টে লগিন করুন",
+  "idOrPhoneLabel": "Employee ID বা Phone Number",
+  "pinLabel": "PIN (পিন)",
+  "loginBtn": "লগিন করুন",
+  "errorEmptyInput": "অনুগ্রহ করে আইডি/ফোন এবং পিন দিন।",
+  "errorInvalidCredentials": "ভুল আইডি/ফোন অথবা পিন দিয়েছেন।",
+  "errorLoginFailed": "লগিন ব্যর্থ হয়েছে: ",
+  "errorGeneric": "একটি সমস্যা হয়েছে: "
 }

@@ -170,4 +170,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalAdvanceThisMonth => 'Total Advance (This Month)';
+
+  @override
+  String get loginTitle => 'Welcome';
+
+  @override
+  String get loginSubtitle => 'Login to your account';
+
+  @override
+  String get idOrPhoneLabel => 'Employee ID or Phone Number';
+
+  @override
+  String get pinLabel => 'PIN';
+
+  @override
+  String get loginBtn => 'LOGIN';
+
+  @override
+  String get errorEmptyInput => 'Please enter your ID/Phone and PIN.';
+
+  @override
+  String get errorInvalidCredentials => 'Invalid ID/Phone or PIN.';
+
+  @override
+  String get errorLoginFailed => 'Login failed: ';
+
+  @override
+  String get errorGeneric => 'An error occurred: ';
 }
