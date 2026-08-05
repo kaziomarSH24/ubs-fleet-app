@@ -31,71 +31,63 @@ class DriverProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF070D14),
-      body: Stack(
-        children: [
-          // Background Image
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/driver_bg.jpg'),
-                fit: BoxFit.cover,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        title: (l10n?.profileTitle ?? "MY PROFILE").text.white.letterSpacing(1).bold.xl.make(),
+        actions: [
+          Center(
+            child: Container(
+              height: 36,
+              margin: const EdgeInsets.only(right: 20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3)),
+                color: Colors.cyanAccent.withValues(alpha: 0.1),
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  final current = ref.read(localeProvider);
+                  ref.read(localeProvider.notifier).state = Locale(current.languageCode == 'en' ? 'bn' : 'en');
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.language, size: 16, color: Colors.cyanAccent),
+                      4.widthBox,
+                      (ref.watch(localeProvider).languageCode == 'en' ? 'বাং' : 'EN')
+                          .text
+                          .color(Colors.cyanAccent)
+                          .bold
+                          .make(),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-          
-          // Heavy Glass Overlay
-          Container(
-            color: const Color(0xFF070D14).withValues(alpha: 0.85),
+        ],
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: const AssetImage('assets/images/driver_bg.jpg'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(
+              const Color(0xFF070D14).withValues(alpha: 0.85),
+              BlendMode.darken,
+            ),
           ),
-          
-          // Content
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20).copyWith(bottom: 100),
-              child: Column(
-                children: [
-                  // App Bar
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      24.widthBox, // Spacer
-                      (l10n?.profileTitle ?? "MY PROFILE").text.white.letterSpacing(1).bold.xl.make(),
-                      
-                      // Language Toggle
-                      Container(
-                        height: 36,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3)),
-                          color: Colors.cyanAccent.withValues(alpha: 0.1),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(20),
-                          onTap: () {
-                            final current = ref.read(localeProvider);
-                            ref.read(localeProvider.notifier).state = Locale(current.languageCode == 'en' ? 'bn' : 'en');
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.language, size: 16, color: Colors.cyanAccent),
-                                4.widthBox,
-                                (ref.watch(localeProvider).languageCode == 'en' ? 'বাং' : 'EN')
-                                    .text
-                                    .color(Colors.cyanAccent)
-                                    .bold
-                                    .make(),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  40.heightBox,
-                  
-                  // Avatar Profile Picture
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20).copyWith(bottom: 100),
+          child: Column(
+            children: [
+              // Avatar Profile Picture
                   Center(
                     child: Container(
                       padding: const EdgeInsets.all(4),
@@ -187,10 +179,8 @@ class DriverProfileScreen extends ConsumerWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
+        );
+      }
 
   Widget _buildGlassCard({required String title, required IconData icon, required List<Widget> children}) {
     return ClipRRect(
