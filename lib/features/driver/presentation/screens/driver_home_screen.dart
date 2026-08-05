@@ -29,24 +29,15 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF070D14), // Darker background similar to profile
-      body: Stack(
-        children: [
-          // Real Background Image
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/driver_bg.jpg'),
-                fit: BoxFit.cover,
-              ),
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/driver_bg.jpg'),
+            fit: BoxFit.cover,
+            opacity: 0.15,
           ),
-          
-          // Heavy Glass Overlay (to make the top blend smoothly)
-          Container(
-            color: const Color(0xFF070D14).withValues(alpha: 0.85),
-          ),
-
-          SafeArea(
+        ),
+        child: SafeArea(
             child: Column(
               children: [
                 _buildAppBar(l10n),
@@ -73,8 +64,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 ),
               ],
             ),
-          ),
-        ],
+        ),
       ),
     );
   }

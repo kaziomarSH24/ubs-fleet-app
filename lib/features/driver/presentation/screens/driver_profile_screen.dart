@@ -31,25 +31,15 @@ class DriverProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF070D14),
-      body: Stack(
-        children: [
-          // Background Image
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/images/driver_bg.jpg'),
-                fit: BoxFit.cover,
-              ),
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/driver_bg.jpg'),
+            fit: BoxFit.cover,
+            opacity: 0.15,
           ),
-          
-          // Heavy Glass Overlay
-          Container(
-            color: const Color(0xFF070D14).withValues(alpha: 0.85),
-          ),
-          
-          // Content
-          SafeArea(
+        ),
+        child: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20).copyWith(bottom: 100),
               child: Column(
@@ -184,10 +174,9 @@ class DriverProfileScreen extends ConsumerWidget {
                   
                   20.heightBox,
                 ],
-              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
