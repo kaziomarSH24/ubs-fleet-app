@@ -8,6 +8,7 @@ import 'l10n/app_localizations.dart';
 import 'core/routes/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/locale_provider.dart';
+import 'core/database/hive_setup.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,9 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('Supabase init failed: $e');
   }
+
+  // Initialize Hive
+  await HiveSetup.init();
 
   runApp(
     const ProviderScope(
