@@ -13,6 +13,7 @@ import '../../../../core/database/entities/expense_local.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../data/repositories/driver_repository.dart';
 import '../../data/repositories/profile_repository.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../domain/services/pdf_logbook_service.dart';
 
 class DriverLogsScreen extends ConsumerStatefulWidget {
@@ -284,11 +285,7 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
     }
     
     if (logs.isEmpty) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("No logs found for this month to export.")),
-        );
-      }
+      AppSnackbar.showError(context, "No logs found for this month to export.");
       return;
     }
 

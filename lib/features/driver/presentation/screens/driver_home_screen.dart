@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/providers/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -130,28 +131,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                 final km = int.tryParse(startKmController.text) ?? 0;
                 
                 if (km < lastKm && lastKm > 0) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          const Icon(Icons.error_outline, color: Colors.white, size: 24),
-                          12.widthBox,
-                          Expanded(
-                            child: Text(
-                              l10n.errorInvalidStartKm,
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                            ),
-                          ),
-                        ],
-                      ),
-                      backgroundColor: Colors.redAccent.shade700,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      margin: const EdgeInsets.only(bottom: 24, left: 20, right: 20),
-                      elevation: 8,
-                      duration: const Duration(seconds: 4),
-                    ),
-                  );
+                  AppSnackbar.showError(context, l10n.errorInvalidStartKm);
                   return; // Don't proceed
                 }
                 
