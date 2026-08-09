@@ -86,6 +86,8 @@ class AuthService {
         employeeId: response['employee_id'] ?? '',
         phoneNumber: response['phone_number'] ?? '',
         role: response['role'] ?? 'driver',
+        avatarUrl: response['avatar_url'],
+        drivingLicenseNo: response['driving_license_no'],
       );
 
       final box = Hive.box<ProfileLocal>(HiveSetup.profilesBox);

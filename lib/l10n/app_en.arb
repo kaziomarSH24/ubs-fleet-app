@@ -65,5 +65,13 @@
   "errorInvalidCredentials": "Invalid ID/Phone or PIN.",
   "errorLoginFailed": "Login failed: ",
   "errorGeneric": "An error occurred: ",
-  "errorInvalidStartKm": "Start KM cannot be less than the last closing KM"
+  "errorInvalidStartKm": "Start KM cannot be less than the last closing KM",
+  "myDocuments": "MY DOCUMENTS",
+  "uploadDocument": "Upload Document",
+  "statusPending": "Pending",
+  "statusVerified": "Verified",
+  "statusRejected": "Rejected",
+  "editPhone": "Edit Phone Number",
+  "save": "Save",
+  "errorImageTooLarge": "Image is too large. Please select an image under 2MB."
 }

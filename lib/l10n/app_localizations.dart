@@ -481,6 +481,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start KM cannot be less than the last closing KM'**
   String get errorInvalidStartKm;
+
+  /// No description provided for @myDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'MY DOCUMENTS'**
+  String get myDocuments;
+
+  /// No description provided for @uploadDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Document'**
+  String get uploadDocument;
+
+  /// No description provided for @statusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get statusPending;
+
+  /// No description provided for @statusVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get statusVerified;
+
+  /// No description provided for @statusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get statusRejected;
+
+  /// No description provided for @editPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Phone Number'**
+  String get editPhone;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @errorImageTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Image is too large. Please select an image under 2MB.'**
+  String get errorImageTooLarge;
 }
 
 class _AppLocalizationsDelegate

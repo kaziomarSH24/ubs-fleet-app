@@ -201,4 +201,29 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get errorInvalidStartKm =>
       'স্টার্ট কি.মি. গত ডিউটির শেষ কি.মি.-এর চেয়ে কম হতে পারবে না';
+
+  @override
+  String get myDocuments => 'আমার ডকুমেন্টস';
+
+  @override
+  String get uploadDocument => 'ডকুমেন্ট আপলোড করুন';
+
+  @override
+  String get statusPending => 'পেন্ডিং';
+
+  @override
+  String get statusVerified => 'ভেরিফাইড';
+
+  @override
+  String get statusRejected => 'রিজেক্টেড';
+
+  @override
+  String get editPhone => 'মোবাইল নম্বর এডিট করুন';
+
+  @override
+  String get save => 'সেভ করুন';
+
+  @override
+  String get errorImageTooLarge =>
+      'ছবিটি অনেক বড়। দয়া করে ২ এমবির ছোট ছবি দিন।';
 }

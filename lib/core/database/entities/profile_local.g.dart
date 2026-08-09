@@ -22,13 +22,15 @@ class ProfileLocalAdapter extends TypeAdapter<ProfileLocal> {
       employeeId: fields[2] as String,
       phoneNumber: fields[3] as String,
       role: fields[4] as String,
+      avatarUrl: fields[5] as String?,
+      drivingLicenseNo: fields[6] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ProfileLocal obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -38,7 +40,11 @@ class ProfileLocalAdapter extends TypeAdapter<ProfileLocal> {
       ..writeByte(3)
       ..write(obj.phoneNumber)
       ..writeByte(4)
-      ..write(obj.role);
+      ..write(obj.role)
+      ..writeByte(5)
+      ..write(obj.avatarUrl)
+      ..writeByte(6)
+      ..write(obj.drivingLicenseNo);
   }
 
   @override

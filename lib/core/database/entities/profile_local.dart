@@ -19,11 +19,19 @@ class ProfileLocal extends HiveObject {
   @HiveField(4)
   final String role;
 
+  @HiveField(5)
+  final String? avatarUrl;
+
+  @HiveField(6)
+  final String? drivingLicenseNo;
+
   ProfileLocal({
     required this.id,
     required this.fullName,
     required this.employeeId,
     required this.phoneNumber,
     required this.role,
+    this.avatarUrl,
+    this.drivingLicenseNo,
   });
 }

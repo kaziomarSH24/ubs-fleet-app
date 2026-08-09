@@ -62,5 +62,13 @@
   "errorInvalidCredentials": "ভুল আইডি/ফোন অথবা পিন দিয়েছেন।",
   "errorLoginFailed": "লগইন ব্যর্থ হয়েছে: ",
   "errorGeneric": "একটি ত্রুটি ঘটেছে: ",
-  "errorInvalidStartKm": "স্টার্ট কি.মি. গত ডিউটির শেষ কি.মি.-এর চেয়ে কম হতে পারবে না"
+  "errorInvalidStartKm": "স্টার্ট কি.মি. গত ডিউটির শেষ কি.মি.-এর চেয়ে কম হতে পারবে না",
+  "myDocuments": "আমার ডকুমেন্টস",
+  "uploadDocument": "ডকুমেন্ট আপলোড করুন",
+  "statusPending": "পেন্ডিং",
+  "statusVerified": "ভেরিফাইড",
+  "statusRejected": "রিজেক্টেড",
+  "editPhone": "মোবাইল নম্বর এডিট করুন",
+  "save": "সেভ করুন",
+  "errorImageTooLarge": "ছবিটি অনেক বড়। দয়া করে ২ এমবির ছোট ছবি দিন।"
 }

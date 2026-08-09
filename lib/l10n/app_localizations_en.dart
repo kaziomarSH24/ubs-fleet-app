@@ -201,4 +201,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorInvalidStartKm =>
       'Start KM cannot be less than the last closing KM';
+
+  @override
+  String get myDocuments => 'MY DOCUMENTS';
+
+  @override
+  String get uploadDocument => 'Upload Document';
+
+  @override
+  String get statusPending => 'Pending';
+
+  @override
+  String get statusVerified => 'Verified';
+
+  @override
+  String get statusRejected => 'Rejected';
+
+  @override
+  String get editPhone => 'Edit Phone Number';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get errorImageTooLarge =>
+      'Image is too large. Please select an image under 2MB.';
 }
