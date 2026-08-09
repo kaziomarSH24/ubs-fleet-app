@@ -177,6 +177,9 @@ class SyncService {
           nightStay: row['night_stay'] ?? false,
           isSynced: true,
           isStartTimeEdited: row['is_start_time_edited'] ?? false,
+          cngKm: row['cng_km'] ?? 0,
+          lpgKm: row['lpg_km'] ?? 0,
+          octaneKm: row['octane_km'] ?? 0,
         );
         await logBox.put(log.id, log);
       }

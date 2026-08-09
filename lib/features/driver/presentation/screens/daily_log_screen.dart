@@ -33,7 +33,10 @@ class _DailyLogScreenState extends ConsumerState<DailyLogScreen> {
   
   int _totalRun = 0;
   int _cngRun = 0;
+  int _lpgRun = 0;
   bool _isNightStay = false;
+  
+  String _primaryFuel = 'CNG'; // 'CNG', 'LPG', 'Octane'
   
   late DateTime _startTime;
   late DateTime _endTime;
@@ -67,7 +70,17 @@ class _DailyLogScreenState extends ConsumerState<DailyLogScreen> {
   void _calculateFuel() {
     final octaneKm = int.tryParse(_octaneKmController.text) ?? 0;
     setState(() {
-      _cngRun = (_totalRun - octaneKm).clamp(0, 999999);
+      final remainingKm = (_totalRun - octaneKm).clamp(0, 999999);
+      if (_primaryFuel == 'CNG') {
+        _cngRun = remainingKm;
+        _lpgRun = 0;
+      } else if (_primaryFuel == 'LPG') {
+        _lpgRun = remainingKm;
+        _cngRun = 0;
+      } else {
+        _cngRun = 0;
+        _lpgRun = 0;
+      }
     });
   }
   
@@ -280,20 +293,49 @@ class _DailyLogScreenState extends ConsumerState<DailyLogScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            "Primary Fuel".text.color(Colors.white70).make(),
+                            DropdownButton<String>(
+                              value: _primaryFuel,
+                              dropdownColor: const Color(0xFF0F1A2C),
+                              style: const TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold),
+                              underline: const SizedBox(),
+                              items: ['CNG', 'LPG', 'Octane'].map((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: value.text.make(),
+                                );
+                              }).toList(),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() {
+                                    _primaryFuel = val;
+                                    _calculateFuel();
+                                  });
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                        16.heightBox,
                         CustomTextField(
                           controller: _octaneKmController,
                           hint: l10n.octaneRun,
                           icon: Icons.local_gas_station,
                           keyboardType: TextInputType.number,
                         ),
-                        16.heightBox,
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            l10n.cngRun.text.color(Colors.greenAccent).make(),
-                            "$_cngRun KM".text.xl.bold.color(Colors.greenAccent).make(),
-                          ],
-                        ).pSymmetric(h: 8),
+                        if (_primaryFuel != 'Octane') ...[
+                          16.heightBox,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              "${_primaryFuel} Run".text.color(Colors.greenAccent).make(),
+                              "${_primaryFuel == 'CNG' ? _cngRun : _lpgRun} KM".text.xl.bold.color(Colors.greenAccent).make(),
+                            ],
+                          ).pSymmetric(h: 8),
+                        ]
                       ],
                     ),
                   ).animate().fade(delay: 200.ms, duration: 400.ms).slideY(begin: 0.1, end: 0),
@@ -404,6 +446,9 @@ class _DailyLogScreenState extends ConsumerState<DailyLogScreen> {
                              logId: activeLog.id, 
                              endKm: endKm,
                              actualStartTime: _startTime,
+                             cngKm: _cngRun,
+                             lpgKm: _lpgRun,
+                             octaneKm: int.tryParse(_octaneKmController.text) ?? 0,
                            );
                            
                            final expense = double.tryParse(_tollParkingController.text) ?? 0;

@@ -40,6 +40,15 @@ class DailyLogLocal extends HiveObject {
   @HiveField(11, defaultValue: false)
   final bool isStartTimeEdited; // true if driver edited the start time when ending duty
 
+  @HiveField(12, defaultValue: 0)
+  final int? cngKm;
+
+  @HiveField(13, defaultValue: 0)
+  final int? lpgKm;
+
+  @HiveField(14, defaultValue: 0)
+  final int? octaneKm;
+
   DailyLogLocal({
     required this.id,
     required this.driverId,
@@ -53,5 +62,8 @@ class DailyLogLocal extends HiveObject {
     required this.nightStay,
     this.isSynced = false,
     this.isStartTimeEdited = false,
+    this.cngKm = 0,
+    this.lpgKm = 0,
+    this.octaneKm = 0,
   });
 }

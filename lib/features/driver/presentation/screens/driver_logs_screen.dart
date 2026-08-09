@@ -20,6 +20,7 @@ class DriverLogsScreen extends ConsumerStatefulWidget {
 class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
+  DateTime _currentMonth = DateTime.now();
   
   @override
   void initState() {
@@ -92,9 +93,28 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
                         .text.white.bold.make(),
                     const SizedBox(width: 48), // Balance row
                   ] else ...[
-                    const Icon(Icons.arrow_back_ios, color: Colors.cyanAccent, size: 16),
-                    DateFormat('MMMM yyyy').format(DateTime.now()).text.white.bold.lg.make(),
-                    const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 16),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios, color: Colors.cyanAccent, size: 16),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        setState(() {
+                          _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1, 1);
+                        });
+                      },
+                    ),
+                    DateFormat('MMMM yyyy').format(_currentMonth).text.white.bold.lg.make(),
+                    IconButton(
+                      icon: Icon(Icons.arrow_forward_ios, color: _currentMonth.month == DateTime.now().month && _currentMonth.year == DateTime.now().year ? Colors.white24 : Colors.cyanAccent, size: 16),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        if (_currentMonth.month == DateTime.now().month && _currentMonth.year == DateTime.now().year) return;
+                        setState(() {
+                          _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 1);
+                        });
+                      },
+                    ),
                   ]
                 ],
               ),
@@ -112,10 +132,13 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
                     return const Center(child: Text("No driver logged in", style: TextStyle(color: Colors.white)));
                   }
                   
+                  final effectiveStart = _startDate ?? DateTime(_currentMonth.year, _currentMonth.month, 1);
+                  final effectiveEnd = _endDate ?? DateTime(_currentMonth.year, _currentMonth.month + 1, 0, 23, 59, 59);
+
                   final logs = ref.read(driverRepositoryProvider).getLogs(
                     profile.id,
-                    start: _startDate,
-                    end: _endDate,
+                    start: effectiveStart,
+                    end: effectiveEnd,
                   );
                   
                   if (logs.isEmpty) {
@@ -169,36 +192,42 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Daily Summary Header
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            margin: EdgeInsets.only(bottom: 16, top: index == 0 ? 0 : 16),
-                            decoration: BoxDecoration(
-                              color: Colors.cyan.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.cyan.withValues(alpha: 0.3)),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    formattedDate.text.color(Colors.cyanAccent).bold.make(),
-                                    6.heightBox,
-                                    (hasOngoing ? "Includes Ongoing Duty" : "Daily Total").text.white.size(12).make(),
-                                  ],
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    "${hasOngoing && dailyKm == 0 ? '--' : dailyKm} KM | ${hasOngoing && dailyDuration.inMinutes == 0 ? '--' : durationStr}".text.white.bold.make(),
-                                    6.heightBox,
-                                    "৳ ${dailyExpense.toInt()}".text.color(Colors.greenAccent).bold.make(),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ).animate().fade(delay: (50 * index).ms).slideX(begin: -0.1, end: 0),
+                          GestureDetector(
+                            onTap: () => _showDailySummaryModal(context, dateKey, dayLogs),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              margin: EdgeInsets.only(bottom: 16, top: index == 0 ? 0 : 16),
+                              decoration: BoxDecoration(
+                                color: Colors.cyan.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.cyan.withValues(alpha: 0.3)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        formattedDate.text.color(Colors.cyanAccent).bold.make(),
+                                        6.heightBox,
+                                        (hasOngoing ? "Includes Ongoing Duty" : "Daily Total").text.white.size(12).make(),
+                                      ],
+                                    ),
+                                  ),
+                                  8.widthBox,
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      "${hasOngoing && dailyKm == 0 ? '--' : dailyKm} KM | ${hasOngoing && dailyDuration.inMinutes == 0 ? '--' : durationStr}".text.white.bold.size(13).make(),
+                                      6.heightBox,
+                                      "৳ ${dailyExpense.toInt()}".text.color(Colors.greenAccent).bold.make(),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ).animate().fade(delay: (50 * index).ms).slideX(begin: -0.1, end: 0),
+                          ),
                           
                           // Individual Logs for this Date
                           ...dayLogs.map((log) {
@@ -405,6 +434,13 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
               if (log.totalKm != null)
                 _buildDetailRow(Icons.route, "Total Distance", "${log.totalKm} KM", color: Colors.cyanAccent, isBold: true),
               
+              if (log.cngKm != null && log.cngKm! > 0)
+                _buildDetailRow(Icons.local_gas_station, "CNG Run", "${log.cngKm} KM", color: Colors.greenAccent),
+              if (log.lpgKm != null && log.lpgKm! > 0)
+                _buildDetailRow(Icons.local_gas_station, "LPG Run", "${log.lpgKm} KM", color: Colors.greenAccent),
+              if (log.octaneKm != null && log.octaneKm! > 0)
+                _buildDetailRow(Icons.local_gas_station, "Octane Run", "${log.octaneKm} KM", color: Colors.greenAccent),
+              
               const Divider(color: Colors.white10, height: 24),
               
               _buildDetailRow(Icons.night_shelter, "Night Stay", log.nightStay ? "Yes" : "No"),
@@ -447,6 +483,108 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
           value.text.color(color).fontWeight(isBold ? FontWeight.bold : FontWeight.normal).make(),
         ],
       ),
+    );
+  }
+
+  void _showDailySummaryModal(BuildContext context, String dateKey, List<DailyLogLocal> dayLogs) {
+    int totalKm = 0;
+    int totalCng = 0;
+    int totalLpg = 0;
+    int totalOctane = 0;
+    Duration totalDuration = Duration.zero;
+    double totalExpense = 0.0;
+    bool hasOngoing = false;
+
+    for (var log in dayLogs) {
+      totalKm += (log.totalKm ?? 0);
+      totalCng += (log.cngKm ?? 0);
+      totalLpg += (log.lpgKm ?? 0);
+      totalOctane += (log.octaneKm ?? 0);
+      
+      if (log.endTime != null) {
+        totalDuration += log.endTime!.difference(log.startTime);
+      } else {
+        hasOngoing = true;
+      }
+      
+      final expenses = ref.read(driverRepositoryProvider).getExpensesForLog(log.id);
+      totalExpense += expenses.fold<double>(0, (sum, exp) => sum + exp.amount);
+    }
+    
+    final formattedDate = DateFormat('EEEE, MMM d, yyyy').format(DateTime.parse(dateKey));
+    
+    final hours = totalDuration.inHours;
+    final minutes = totalDuration.inMinutes.remainder(60);
+    final durationStr = "${hours}h ${minutes}m";
+    
+    String overtimeStr = "0h";
+    if (totalDuration > const Duration(hours: 10)) {
+      final extra = totalDuration - const Duration(hours: 10);
+      overtimeStr = "${extra.inHours}h ${extra.inMinutes.remainder(60)}m";
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F1A2C),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border(top: BorderSide(color: Colors.cyanAccent.withValues(alpha: 0.3), width: 2)),
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  24.heightBox,
+                  "DAILY SUMMARY".text.xl2.bold.color(Colors.cyanAccent).letterSpacing(1.2).make(),
+                  8.heightBox,
+                  formattedDate.text.color(Colors.white54).make(),
+                  if (hasOngoing) ...[
+                    4.heightBox,
+                    "Includes Ongoing Duty".text.size(12).color(Colors.orangeAccent).italic.make(),
+                  ],
+                  24.heightBox,
+                  
+                  _buildDetailRow(Icons.access_time, "Total Duty Hours", durationStr, color: Colors.cyanAccent, isBold: true),
+                  _buildDetailRow(Icons.more_time, "Total Overtime (after 10h)", overtimeStr, color: Colors.orangeAccent),
+                  
+                  const Divider(color: Colors.white10, height: 24),
+                  
+                  _buildDetailRow(Icons.route, "Total Distance", "$totalKm KM", color: Colors.cyanAccent, isBold: true),
+                  if (totalCng > 0)
+                    _buildDetailRow(Icons.local_gas_station, "Total CNG Run", "$totalCng KM", color: Colors.greenAccent),
+                  if (totalLpg > 0)
+                    _buildDetailRow(Icons.local_gas_station, "Total LPG Run", "$totalLpg KM", color: Colors.greenAccent),
+                  if (totalOctane > 0)
+                    _buildDetailRow(Icons.local_gas_station, "Total Octane Run", "$totalOctane KM", color: Colors.greenAccent),
+                  
+                  const Divider(color: Colors.white10, height: 24),
+                  
+                  _buildDetailRow(Icons.receipt_long, "Total Expenses", "৳ ${totalExpense.toInt()}", color: Colors.orangeAccent, isBold: true),
+                  
+                  32.heightBox,
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

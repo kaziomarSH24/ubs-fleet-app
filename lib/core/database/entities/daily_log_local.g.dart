@@ -29,13 +29,16 @@ class DailyLogLocalAdapter extends TypeAdapter<DailyLogLocal> {
       nightStay: fields[9] as bool,
       isSynced: fields[10] == null ? false : fields[10] as bool,
       isStartTimeEdited: fields[11] == null ? false : fields[11] as bool,
+      cngKm: fields[12] == null ? 0 : fields[12] as int?,
+      lpgKm: fields[13] == null ? 0 : fields[13] as int?,
+      octaneKm: fields[14] == null ? 0 : fields[14] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, DailyLogLocal obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -59,7 +62,13 @@ class DailyLogLocalAdapter extends TypeAdapter<DailyLogLocal> {
       ..writeByte(10)
       ..write(obj.isSynced)
       ..writeByte(11)
-      ..write(obj.isStartTimeEdited);
+      ..write(obj.isStartTimeEdited)
+      ..writeByte(12)
+      ..write(obj.cngKm)
+      ..writeByte(13)
+      ..write(obj.lpgKm)
+      ..writeByte(14)
+      ..write(obj.octaneKm);
   }
 
   @override
