@@ -193,8 +193,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get errorInvalidCredentials => 'ভুল আইডি/ফোন অথবা পিন দিয়েছেন।';
 
   @override
-  String get errorLoginFailed => 'লগিন ব্যর্থ হয়েছে: ';
+  String get errorLoginFailed => 'লগইন ব্যর্থ হয়েছে: ';
 
   @override
-  String get errorGeneric => 'একটি সমস্যা হয়েছে: ';
+  String get errorGeneric => 'একটি ত্রুটি ঘটেছে: ';
+
+  @override
+  String get errorInvalidStartKm =>
+      'স্টার্ট কি.মি. গত ডিউটির শেষ কি.মি.-এর চেয়ে কম হতে পারবে না';
 }

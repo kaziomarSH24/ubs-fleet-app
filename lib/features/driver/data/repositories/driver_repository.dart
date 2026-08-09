@@ -64,6 +64,7 @@ class DriverRepository {
     int cngKm = 0,
     int lpgKm = 0,
     int octaneKm = 0,
+    bool nightStay = false,
   }) async {
     final box = Hive.box<DailyLogLocal>(HiveSetup.dailyLogsBox);
     final log = box.get(logId);
@@ -86,7 +87,7 @@ class DriverRepository {
         endKm: endKm,
         totalKm: totalKm,
         status: 'completed',
-        nightStay: log.nightStay,
+        nightStay: nightStay,
         isSynced: false,
         isStartTimeEdited: log.isStartTimeEdited || isStartTimeEdited,
         cngKm: cngKm,
@@ -105,6 +106,7 @@ class DriverRepository {
         'cng_km': cngKm,
         'lpg_km': lpgKm,
         'octane_km': octaneKm,
+        'night_stay': nightStay,
       };
       
       if (isStartTimeEdited) {

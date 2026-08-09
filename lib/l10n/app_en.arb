@@ -64,5 +64,6 @@
   "errorEmptyInput": "Please enter your ID/Phone and PIN.",
   "errorInvalidCredentials": "Invalid ID/Phone or PIN.",
   "errorLoginFailed": "Login failed: ",
-  "errorGeneric": "An error occurred: "
+  "errorGeneric": "An error occurred: ",
+  "errorInvalidStartKm": "Start KM cannot be less than the last closing KM"
 }

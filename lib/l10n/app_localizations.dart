@@ -475,6 +475,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An error occurred: '**
   String get errorGeneric;
+
+  /// No description provided for @errorInvalidStartKm.
+  ///
+  /// In en, this message translates to:
+  /// **'Start KM cannot be less than the last closing KM'**
+  String get errorInvalidStartKm;
 }
 
 class _AppLocalizationsDelegate

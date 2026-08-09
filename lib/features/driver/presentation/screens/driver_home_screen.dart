@@ -72,8 +72,23 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     );
   }
 
+  int _getLastEndKm() {
+    final authService = ref.read(authServiceProvider);
+    final profile = authService.getLocalProfile();
+    if (profile != null) {
+      final logs = ref.read(driverRepositoryProvider).getLogs(profile.id);
+      for (var log in logs) {
+        if (log.endKm != null) {
+          return log.endKm!;
+        }
+      }
+    }
+    return 0; // Default if no previous logs
+  }
+
   void _showStartDutyDialog(BuildContext context) {
-    final startKmController = TextEditingController(text: '250507');
+    final lastKm = _getLastEndKm();
+    final startKmController = TextEditingController(text: lastKm > 0 ? lastKm.toString() : '');
     final l10n = AppLocalizations.of(context)!;
     
     showDialog(
@@ -112,7 +127,33 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                 final authService = ref.read(authServiceProvider);
                 final profile = authService.getLocalProfile();
                 
-                final km = int.tryParse(startKmController.text) ?? 250507;
+                final km = int.tryParse(startKmController.text) ?? 0;
+                
+                if (km < lastKm && lastKm > 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.white, size: 24),
+                          12.widthBox,
+                          Expanded(
+                            child: Text(
+                              l10n.errorInvalidStartKm,
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.redAccent.shade700,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.only(bottom: 24, left: 20, right: 20),
+                      elevation: 8,
+                      duration: const Duration(seconds: 4),
+                    ),
+                  );
+                  return; // Don't proceed
+                }
                 
                 if (profile != null) {
                   // For now, vehicleId is hardcoded dummy. In reality, it should be fetched or selected.
@@ -339,7 +380,8 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   }
 
   Widget _buildMeterReadingCard(AppLocalizations l10n) {
-    final displayKm = _isDutyOn && _currentStartKm != null ? _currentStartKm! : 250507;
+    final lastKm = _getLastEndKm();
+    final displayKm = _isDutyOn && _currentStartKm != null ? _currentStartKm! : lastKm;
     final formatter = NumberFormat('#,##0');
     final formattedKm = formatter.format(displayKm);
     
@@ -417,9 +459,9 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                   children: [
                     l10n.yesterdaysClosing.text
                         .color(Colors.white54)
-                        .size(12)
+                        .size(10)
                         .make(),
-                    "250,507 KM".text.white.bold.fontFamily('Orbitron').make(),
+                    "${formatter.format(lastKm)} KM".text.white.bold.make(),
                   ],
                 ),
               ),
@@ -431,6 +473,35 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   }
 
   Widget _buildMonthlyStatsCard(AppLocalizations l10n) {
+    int totalKm = 0;
+    Duration totalDuration = Duration.zero;
+    
+    final authService = ref.read(authServiceProvider);
+    final profile = authService.getLocalProfile();
+    
+    if (profile != null) {
+      final now = DateTime.now();
+      final monthStart = DateTime(now.year, now.month, 1);
+      final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+      
+      final logs = ref.read(driverRepositoryProvider).getLogs(
+        profile.id,
+        start: monthStart,
+        end: monthEnd,
+      );
+      
+      for (var log in logs) {
+        totalKm += (log.totalKm ?? 0);
+        if (log.endTime != null) {
+          totalDuration += log.endTime!.difference(log.startTime);
+        }
+      }
+    }
+    
+    final formatter = NumberFormat('#,##0');
+    final formattedKm = formatter.format(totalKm);
+    final formattedHours = "${totalDuration.inHours} Hrs";
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -456,7 +527,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                       8.heightBox,
                       "Total KM".text.color(Colors.white70).size(12).make(),
                       4.heightBox,
-                      "1,250".text.white.bold.xl.make(),
+                      formattedKm.text.white.bold.xl.make(),
                     ],
                   ),
                   Container(
@@ -470,7 +541,7 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                       8.heightBox,
                       "Duty Hours".text.color(Colors.white70).size(12).make(),
                       4.heightBox,
-                      "120 Hrs".text.white.bold.xl.make(),
+                      formattedHours.text.white.bold.xl.make(),
                     ],
                   ),
                 ],

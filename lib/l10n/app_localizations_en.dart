@@ -197,4 +197,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorGeneric => 'An error occurred: ';
+
+  @override
+  String get errorInvalidStartKm =>
+      'Start KM cannot be less than the last closing KM';
 }

@@ -60,6 +60,7 @@
   "loginBtn": "লগিন করুন",
   "errorEmptyInput": "অনুগ্রহ করে আইডি/ফোন এবং পিন দিন।",
   "errorInvalidCredentials": "ভুল আইডি/ফোন অথবা পিন দিয়েছেন।",
-  "errorLoginFailed": "লগিন ব্যর্থ হয়েছে: ",
-  "errorGeneric": "একটি সমস্যা হয়েছে: "
+  "errorLoginFailed": "লগইন ব্যর্থ হয়েছে: ",
+  "errorGeneric": "একটি ত্রুটি ঘটেছে: ",
+  "errorInvalidStartKm": "স্টার্ট কি.মি. গত ডিউটির শেষ কি.মি.-এর চেয়ে কম হতে পারবে না"
 }

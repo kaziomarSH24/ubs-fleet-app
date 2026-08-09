@@ -449,6 +449,7 @@ class _DailyLogScreenState extends ConsumerState<DailyLogScreen> {
                              cngKm: _cngRun,
                              lpgKm: _lpgRun,
                              octaneKm: int.tryParse(_octaneKmController.text) ?? 0,
+                             nightStay: _isNightStay,
                            );
                            
                            final expense = double.tryParse(_tollParkingController.text) ?? 0;
