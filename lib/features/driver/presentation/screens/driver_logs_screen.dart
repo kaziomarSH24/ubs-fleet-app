@@ -264,8 +264,8 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
     final profile = ref.read(authServiceProvider).getLocalProfile();
     if (profile == null) return;
     
-    // We export the month of the currently selected _startDate or current month
-    final targetMonth = _startDate ?? DateTime.now();
+    // We export the month currently visible in the UI
+    final targetMonth = _currentMonth;
     final monthYearStr = DateFormat('MMMM yyyy').format(targetMonth);
     
     // Create a start and end for the entire month to get all 31 days
