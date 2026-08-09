@@ -13,6 +13,9 @@ import 'core/database/hive_setup.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Initialize Hive
+  await HiveSetup.init();
+
   // Load environment variables
   await dotenv.load(fileName: ".env");
 
@@ -20,14 +23,11 @@ Future<void> main() async {
   try {
     await Supabase.initialize(
       url: dotenv.env['SUPABASE_URL'] ?? 'https://dummy.supabase.co',
-      anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? 'dummy',
+      publishableKey: dotenv.env['SUPABASE_ANON_KEY'] ?? 'dummy',
     );
   } catch (e) {
     debugPrint('Supabase init failed: $e');
   }
-
-  // Initialize Hive
-  await HiveSetup.init();
 
   runApp(
     const ProviderScope(

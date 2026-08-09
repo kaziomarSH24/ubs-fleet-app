@@ -1,23 +1,30 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:ubs_fleet_app/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../auth/data/services/auth_service.dart';
+import '../../data/repositories/driver_repository.dart';
 
-class DailyLogScreen extends StatefulWidget {
-  final DateTime? dutyStartTime;
-  final int? startKm;
-  
-  const DailyLogScreen({super.key, this.dutyStartTime, this.startKm});
+class DailyLogScreen extends ConsumerStatefulWidget {
+  final DateTime startTime;
+  final int startKm;
+
+  const DailyLogScreen({
+    super.key,
+    required this.startTime,
+    required this.startKm,
+  });
 
   @override
-  State<DailyLogScreen> createState() => _DailyLogScreenState();
+  ConsumerState<DailyLogScreen> createState() => _DailyLogScreenState();
 }
 
-class _DailyLogScreenState extends State<DailyLogScreen> {
+class _DailyLogScreenState extends ConsumerState<DailyLogScreen> {
   late int _startKm; 
   
   final _endKmController = TextEditingController();
@@ -34,8 +41,8 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
   @override
   void initState() {
     super.initState();
-    _startKm = widget.startKm ?? 250507;
-    _startTime = widget.dutyStartTime ?? DateTime.now().subtract(const Duration(hours: 8));
+    _startKm = widget.startKm;
+    _startTime = widget.startTime;
     _endTime = DateTime.now();
     
     _endKmController.addListener(_calculateTotal);
@@ -386,8 +393,31 @@ class _DailyLogScreenState extends State<DailyLogScreen> {
                   
                   // Submit Button
                   ElevatedButton(
-                    onPressed: () {
-                      // Submit action -> Return true to end duty on home screen
+                    onPressed: () async {
+                      final authService = ref.read(authServiceProvider);
+                      final profile = authService.getLocalProfile();
+                      if (profile != null) {
+                        final activeLog = ref.read(driverRepositoryProvider).getActiveLog(profile.id);
+                        if (activeLog != null) {
+                           final endKm = int.tryParse(_endKmController.text) ?? widget.startKm;
+                           await ref.read(driverRepositoryProvider).endDuty(
+                             logId: activeLog.id, 
+                             endKm: endKm
+                           );
+                           
+                           final expense = double.tryParse(_tollParkingController.text) ?? 0;
+                           if (expense > 0) {
+                              await ref.read(driverRepositoryProvider).addExpense(
+                                 logId: activeLog.id,
+                                 driverId: profile.id,
+                                 expenseType: 'toll_parking',
+                                 amount: expense,
+                              );
+                           }
+                        }
+                      }
+                      
+                      if (!mounted) return;
                       Navigator.pop(context, true); 
                     },
                     style: ElevatedButton.styleFrom(

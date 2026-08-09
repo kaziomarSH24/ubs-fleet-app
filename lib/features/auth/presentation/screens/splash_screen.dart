@@ -3,28 +3,45 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/services/auth_service.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        final session = Supabase.instance.client.auth.currentSession;
-        if (session != null) {
-          context.go('/driver-home');
-        } else {
-          context.go('/onboarding');
+    _initApp();
+  }
+
+  Future<void> _initApp() async {
+    await Future.delayed(const Duration(seconds: 2));
+    
+    if (mounted) {
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session != null) {
+        final authService = ref.read(authServiceProvider);
+        
+        // Ensure profile is cached locally if they are already logged in
+        if (authService.getLocalProfile() == null) {
+          try {
+            await authService.fetchAndCacheProfile(session.user.id);
+          } catch (e) {
+            debugPrint("Failed to fetch profile: $e");
+          }
         }
+        
+        if (mounted) context.go('/driver-home');
+      } else {
+        if (mounted) context.go('/onboarding');
       }
-    });
+    }
   }
 
   @override

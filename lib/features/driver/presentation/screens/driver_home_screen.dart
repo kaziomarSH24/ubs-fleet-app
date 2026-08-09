@@ -11,14 +11,17 @@ import '../../../../core/widgets/custom_text_field.dart';
 import '../../../../core/providers/locale_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DriverHomeScreen extends StatefulWidget {
+import '../../../auth/data/services/auth_service.dart';
+import '../../data/repositories/driver_repository.dart';
+
+class DriverHomeScreen extends ConsumerStatefulWidget {
   const DriverHomeScreen({super.key});
 
   @override
-  State<DriverHomeScreen> createState() => _DriverHomeScreenState();
+  ConsumerState<DriverHomeScreen> createState() => _DriverHomeScreenState();
 }
 
-class _DriverHomeScreenState extends State<DriverHomeScreen> {
+class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
   bool _isDutyOn = false;
   DateTime? _dutyStartTime;
   int? _currentStartKm;
@@ -105,12 +108,28 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               child: Text(l10n.cancel, style: const TextStyle(color: Colors.white54)),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                final authService = ref.read(authServiceProvider);
+                final profile = authService.getLocalProfile();
+                
+                final km = int.tryParse(startKmController.text) ?? 250507;
+                
+                if (profile != null) {
+                  // For now, vehicleId is hardcoded dummy. In reality, it should be fetched or selected.
+                  await ref.read(driverRepositoryProvider).startDuty(
+                    driverId: profile.id,
+                    vehicleId: 'dummy-vehicle-id',
+                    startKm: km,
+                    nightStay: false,
+                  );
+                }
+
+                if (!dialogContext.mounted) return;
                 Navigator.pop(dialogContext);
                 setState(() {
                   _isDutyOn = true;
                   _dutyStartTime = DateTime.now();
-                  _currentStartKm = int.tryParse(startKmController.text) ?? 250507;
+                  _currentStartKm = km;
                 });
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.cyanAccent),
@@ -165,6 +184,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   }
 
   Widget _buildProfileSection(AppLocalizations l10n) {
+    final authService = ref.read(authServiceProvider);
+    final profile = authService.getLocalProfile();
+    final driverName = profile?.fullName ?? 'DRIVER';
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -191,7 +214,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                     .size(12)
                     .letterSpacing(1)
                     .make(),
-                "ALEX J.".text.white.xl2.bold.letterSpacing(1).make(),
+                driverName.toUpperCase().text.white.xl2.bold.letterSpacing(1).make(),
               ],
             ),
           ],

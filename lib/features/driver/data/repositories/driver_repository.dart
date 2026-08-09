@@ -1,0 +1,175 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:uuid/uuid.dart';
+
+import '../../../../core/database/hive_setup.dart';
+import '../../../../core/database/entities/daily_log_local.dart';
+import '../../../../core/database/entities/expense_local.dart';
+import '../../../sync/domain/services/sync_service.dart';
+
+final driverRepositoryProvider = Provider<DriverRepository>((ref) {
+  final syncService = ref.read(syncServiceProvider);
+  return DriverRepository(syncService);
+});
+
+class DriverRepository {
+  final SyncService _syncService;
+  final _uuid = const Uuid();
+
+  DriverRepository(this._syncService);
+
+  Future<void> startDuty({
+    required String driverId,
+    required String vehicleId,
+    required int startKm,
+    required bool nightStay,
+  }) async {
+    final logId = _uuid.v4();
+    final startTime = DateTime.now();
+    
+    // 1. Create local entity
+    final logLocal = DailyLogLocal(
+      id: logId,
+      driverId: driverId,
+      vehicleId: vehicleId,
+      startTime: startTime,
+      startKm: startKm,
+      status: 'ongoing',
+      nightStay: nightStay,
+      isSynced: false,
+    );
+
+    // 2. Save to Hive
+    final box = Hive.box<DailyLogLocal>(HiveSetup.dailyLogsBox);
+    await box.put(logId, logLocal);
+
+    // 3. Queue Sync Action
+    final payload = {
+      'id': logId,
+      'driver_id': driverId,
+      // 'vehicle_id': vehicleId, // Omitted because it's a dummy value and violates UUID FK constraint
+      'start_time': startTime.toIso8601String(),
+      'start_km': startKm,
+      'status': 'ongoing',
+      'night_stay': nightStay,
+    };
+    await _syncService.queueAction('CREATE_LOG', payload);
+  }
+
+  Future<void> endDuty({
+    required String logId,
+    required int endKm,
+  }) async {
+    final box = Hive.box<DailyLogLocal>(HiveSetup.dailyLogsBox);
+    final log = box.get(logId);
+    
+    if (log != null) {
+      final endTime = DateTime.now();
+      final totalKm = endKm - log.startKm;
+
+      // 1. Update local entity
+      final updatedLog = DailyLogLocal(
+        id: log.id,
+        driverId: log.driverId,
+        vehicleId: log.vehicleId,
+        startTime: log.startTime,
+        endTime: endTime,
+        startKm: log.startKm,
+        endKm: endKm,
+        totalKm: totalKm,
+        status: 'completed',
+        nightStay: log.nightStay,
+        isSynced: false,
+      );
+      await box.put(logId, updatedLog);
+
+      // 2. Queue Sync Action
+      final payload = {
+        'id': logId,
+        'end_time': endTime.toIso8601String(),
+        'end_km': endKm,
+        'total_km': totalKm,
+        'status': 'completed',
+      };
+      await _syncService.queueAction('UPDATE_LOG', payload);
+    }
+  }
+
+  Future<void> addExpense({
+    required String logId,
+    required String driverId,
+    required String expenseType,
+    required double amount,
+  }) async {
+    final expenseId = _uuid.v4();
+    final createdAt = DateTime.now();
+
+    // 1. Create local entity
+    final expense = ExpenseLocal(
+      id: expenseId,
+      logId: logId,
+      driverId: driverId,
+      expenseType: expenseType,
+      amount: amount,
+      createdAt: createdAt,
+      isSynced: false,
+    );
+
+    // 2. Save to Hive
+    final box = Hive.box<ExpenseLocal>(HiveSetup.expensesBox);
+    await box.put(expenseId, expense);
+
+    // 3. Queue Sync Action
+    final payload = {
+      'id': expenseId,
+      'log_id': logId,
+      'driver_id': driverId,
+      'expense_type': expenseType,
+      'amount': amount,
+      'created_at': createdAt.toIso8601String(),
+    };
+    await _syncService.queueAction('CREATE_EXPENSE', payload);
+  }
+
+  // Reactive streams for the UI
+  ValueListenable<Box<DailyLogLocal>> getLogsListenable() {
+    return Hive.box<DailyLogLocal>(HiveSetup.dailyLogsBox).listenable();
+  }
+
+  ValueListenable<Box<ExpenseLocal>> getExpensesListenable() {
+    return Hive.box<ExpenseLocal>(HiveSetup.expensesBox).listenable();
+  }
+
+  // Fetch logs for a specific driver, optionally filtered by date range
+  List<DailyLogLocal> getLogs(String driverId, {DateTime? start, DateTime? end}) {
+    final box = Hive.box<DailyLogLocal>(HiveSetup.dailyLogsBox);
+    final logs = box.values.where((log) => log.driverId == driverId).toList();
+
+    if (start != null && end != null) {
+      return logs.where((log) {
+        return log.startTime.isAfter(start) && log.startTime.isBefore(end.add(const Duration(days: 1)));
+      }).toList();
+    }
+    
+    // Sort by descending start time
+    logs.sort((a, b) => b.startTime.compareTo(a.startTime));
+    return logs;
+  }
+
+  // Fetch expenses for a specific log
+  List<ExpenseLocal> getExpensesForLog(String logId) {
+    final box = Hive.box<ExpenseLocal>(HiveSetup.expensesBox);
+    return box.values.where((exp) => exp.logId == logId).toList();
+  }
+
+  // Get active ongoing log for driver
+  DailyLogLocal? getActiveLog(String driverId) {
+    final box = Hive.box<DailyLogLocal>(HiveSetup.dailyLogsBox);
+    try {
+      return box.values.firstWhere((log) => log.driverId == driverId && log.status == 'ongoing');
+    } catch (e) {
+      return null;
+    }
+  }
+}

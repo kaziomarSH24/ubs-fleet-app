@@ -57,8 +57,8 @@ final appRouter = GoRouter(
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>?;
         return DailyLogScreen(
-          dutyStartTime: extra?['startTime'] as DateTime?,
-          startKm: extra?['startKm'] as int?,
+          startTime: (extra?['startTime'] as DateTime?) ?? DateTime.now(),
+          startKm: (extra?['startKm'] as int?) ?? 0,
         );
       },
     ),

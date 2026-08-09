@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import '../../../../core/database/hive_setup.dart';
+import '../../../../core/database/entities/profile_local.dart';
 
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(Supabase.instance.client);
@@ -44,10 +47,17 @@ class AuthService {
       final dummyEmail = '${targetEmployeeId.toLowerCase()}@ubsfleet.com';
 
       // Step 4: Sign in with Supabase Auth
-      return await _supabase.auth.signInWithPassword(
+      final authResponse = await _supabase.auth.signInWithPassword(
         email: dummyEmail,
         password: pin, // using PIN as password
       );
+
+      // Step 5: Fetch profile and save to Hive
+      if (authResponse.user != null) {
+        await fetchAndCacheProfile(authResponse.user!.id);
+      }
+
+      return authResponse;
     } catch (e) {
       rethrow;
     }
@@ -61,6 +71,37 @@ class AuthService {
   // Get current session
   Session? get currentSession => _supabase.auth.currentSession;
   
+  // Fetch profile from Supabase and cache it
+  Future<void> fetchAndCacheProfile(String userId) async {
+    final response = await _supabase
+        .from('profiles')
+        .select()
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (response != null) {
+      final profile = ProfileLocal(
+        id: response['id'],
+        fullName: response['full_name'] ?? 'Unknown',
+        employeeId: response['employee_id'] ?? '',
+        phoneNumber: response['phone_number'] ?? '',
+        role: response['role'] ?? 'driver',
+      );
+
+      final box = Hive.box<ProfileLocal>(HiveSetup.profilesBox);
+      await box.put(userId, profile);
+    }
+  }
+
+  // Get locally cached profile
+  ProfileLocal? getLocalProfile() {
+    final session = currentSession;
+    if (session == null) return null;
+    
+    final box = Hive.box<ProfileLocal>(HiveSetup.profilesBox);
+    return box.get(session.user.id);
+  }
+
   // Stream of auth state changes
   Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
 }
