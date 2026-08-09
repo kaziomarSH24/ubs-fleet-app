@@ -6,9 +6,14 @@ import '../../../../l10n/app_localizations.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/database/entities/daily_log_local.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/database/entities/daily_log_local.dart';
+import '../../../../core/database/entities/expense_local.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../data/repositories/driver_repository.dart';
-import '../../../../core/database/entities/daily_log_local.dart';
+import '../../data/repositories/profile_repository.dart';
+import '../../domain/services/pdf_logbook_service.dart';
 
 class DriverLogsScreen extends ConsumerStatefulWidget {
   const DriverLogsScreen({super.key});
@@ -56,6 +61,11 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf, color: Colors.cyanAccent),
+            onPressed: () => _exportToPdf(context),
+            tooltip: "Export PDF Logbook",
+          ),
           IconButton(
             icon: const Icon(Icons.calendar_month, color: Colors.cyanAccent),
             onPressed: () => _selectDateRange(context),
@@ -248,6 +258,71 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _exportToPdf(BuildContext context) async {
+    final profile = ref.read(authServiceProvider).getLocalProfile();
+    if (profile == null) return;
+    
+    // We export the month of the currently selected _startDate or current month
+    final targetMonth = _startDate ?? DateTime.now();
+    final monthYearStr = DateFormat('MMMM yyyy').format(targetMonth);
+    
+    // Create a start and end for the entire month to get all 31 days
+    final startOfMonth = DateTime(targetMonth.year, targetMonth.month, 1);
+    final endOfMonth = DateTime(targetMonth.year, targetMonth.month + 1, 0, 23, 59, 59);
+
+    final logs = ref.read(driverRepositoryProvider).getLogs(
+      profile.id,
+      start: startOfMonth,
+      end: endOfMonth,
+    );
+    
+    final Map<String, List<ExpenseLocal>> logsExpenses = {};
+    for (var log in logs) {
+      logsExpenses[log.id] = ref.read(driverRepositoryProvider).getExpensesForLog(log.id);
+    }
+    
+    if (logs.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No logs found for this month to export.")),
+        );
+      }
+      return;
+    }
+
+    // show loading
+    showDialog(
+      context: context, 
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+    
+    Map<String, dynamic>? vehicle;
+    try {
+      // Get the driver's vehicle (if assigned)
+      final profileRepo = ref.read(profileRepositoryProvider);
+      vehicle = await profileRepo.getAssignedVehicle(profile.id);
+    } catch (e) {
+      debugPrint("Error fetching vehicle: $e");
+    } finally {
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop(); // close loading
+      }
+    }
+    
+    try {
+      await PdfLogbookService.generateAndPrintMonthlyLogbook(
+        monthYearStr: monthYearStr,
+        driver: profile,
+        vehicle: vehicle,
+        monthlyLogs: logs,
+        logsExpenses: logsExpenses, 
+      );
+    } catch (e) {
+      debugPrint("PDF Export Error: $e");
+    }
   }
 
   Future<void> _selectDateRange(BuildContext context) async {
