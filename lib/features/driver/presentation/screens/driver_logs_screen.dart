@@ -22,6 +22,19 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
   DateTime? _endDate;
   
   @override
+  void initState() {
+    super.initState();
+    _syncExistingLogs();
+  }
+
+  Future<void> _syncExistingLogs() async {
+    final profile = ref.read(authServiceProvider).getLocalProfile();
+    if (profile != null) {
+      await ref.read(driverRepositoryProvider).syncDownData(profile.id);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     
@@ -252,7 +265,9 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
         durationStr = "${diff.inMinutes} MIN";
       }
     }
-    return Container(
+    return GestureDetector(
+      onTap: () => _showLogDetailsModal(context, log, totalExpense),
+      child: Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
@@ -309,6 +324,127 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
               "EXPENSES: ৳ ${totalExpense.toInt()}".text.color(Colors.greenAccent).size(12).make(),
             ],
           ),
+        ],
+      ),
+    ));
+  }
+
+  void _showLogDetailsModal(BuildContext context, DailyLogLocal log, double totalExpense) {
+    final l10n = AppLocalizations.of(context)!;
+    final dateFormat = DateFormat('EEEE, MMM d, yyyy');
+    final timeFormat = DateFormat('hh:mm a');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F1A2C),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border(top: BorderSide(color: Colors.cyanAccent.withValues(alpha: 0.3), width: 2)),
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  24.heightBox,
+                  "TRIP SUMMARY".text.xl2.bold.color(Colors.cyanAccent).letterSpacing(1.2).make(),
+                  8.heightBox,
+                  dateFormat.format(log.startTime).text.color(Colors.white54).make(),
+                  24.heightBox,
+                  
+                  _buildDetailRow(Icons.play_circle_fill, "Start Time", timeFormat.format(log.startTime), color: Colors.greenAccent),
+                  if (log.endTime != null) ...[
+                    _buildDetailRow(Icons.stop_circle, "End Time", timeFormat.format(log.endTime!), color: Colors.redAccent),
+                    
+                    // Calculate Duty Hours and Overtime
+                    Builder(
+                      builder: (context) {
+                        final diff = log.endTime!.difference(log.startTime);
+                        final hours = diff.inHours;
+                        final minutes = diff.inMinutes.remainder(60);
+                        final durationStr = "${hours}h ${minutes}m";
+                        
+                        String overtimeStr = "0h";
+                        if (diff > const Duration(hours: 10)) {
+                          final extra = diff - const Duration(hours: 10);
+                          overtimeStr = "${extra.inHours}h ${extra.inMinutes.remainder(60)}m";
+                        }
+                        
+                        return Column(
+                          children: [
+                            const Divider(color: Colors.white10, height: 24),
+                            _buildDetailRow(Icons.access_time, "Total Duty Hours", durationStr, color: Colors.cyanAccent, isBold: true),
+                            _buildDetailRow(Icons.more_time, "Overtime (after 10h)", overtimeStr, color: Colors.orangeAccent),
+                          ],
+                        );
+                      }
+                    ),
+                  ],
+              
+              const Divider(color: Colors.white10, height: 24),
+              
+              _buildDetailRow(Icons.speed, "Start KM", "${log.startKm} KM"),
+              if (log.endKm != null)
+                _buildDetailRow(Icons.speed, "End KM", "${log.endKm} KM"),
+              if (log.totalKm != null)
+                _buildDetailRow(Icons.route, "Total Distance", "${log.totalKm} KM", color: Colors.cyanAccent, isBold: true),
+              
+              const Divider(color: Colors.white10, height: 24),
+              
+              _buildDetailRow(Icons.night_shelter, "Night Stay", log.nightStay ? "Yes" : "No"),
+              _buildDetailRow(Icons.receipt_long, "Total Expenses", "৳ ${totalExpense.toInt()}", color: Colors.orangeAccent),
+              
+              if (log.isStartTimeEdited) ...[
+                const Divider(color: Colors.white10, height: 24),
+                Row(
+                  children: [
+                    const Icon(Icons.edit_note, color: Colors.orangeAccent, size: 20),
+                    8.widthBox,
+                    "Start time was manually edited".text.color(Colors.orangeAccent).size(12).italic.make(),
+                  ],
+                ),
+              ],
+              
+                  32.heightBox,
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value, {Color color = Colors.white70, bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: Colors.white30),
+              12.widthBox,
+              label.text.color(Colors.white54).make(),
+            ],
+          ),
+          value.text.color(color).fontWeight(isBold ? FontWeight.bold : FontWeight.normal).make(),
         ],
       ),
     );

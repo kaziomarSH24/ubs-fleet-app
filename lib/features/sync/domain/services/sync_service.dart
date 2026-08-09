@@ -140,6 +140,81 @@ class SyncService {
     }
   }
 
+  /// Fetch existing logs and expenses from Supabase and save to local Hive box
+  Future<void> syncDownData(String driverId) async {
+    final hasInternet = await InternetConnection().hasInternetAccess;
+    if (!hasInternet) return;
+
+    try {
+      // Fetch Daily Logs
+      final logsResponse = await _supabase
+          .from('daily_logs')
+          .select()
+          .eq('driver_id', driverId);
+
+      final logBox = Hive.box<DailyLogLocal>(HiveSetup.dailyLogsBox);
+      final supabaseLogIds = logsResponse.map((row) => row['id'] as String).toSet();
+
+      // Delete local logs that were synced but no longer exist in Supabase
+      final localLogs = logBox.values.toList();
+      for (var log in localLogs) {
+        if (log.isSynced && !supabaseLogIds.contains(log.id)) {
+          await logBox.delete(log.id);
+        }
+      }
+
+      for (var row in logsResponse) {
+        final log = DailyLogLocal(
+          id: row['id'],
+          driverId: row['driver_id'],
+          vehicleId: row['vehicle_id'] ?? '',
+          startTime: DateTime.parse(row['start_time']),
+          endTime: row['end_time'] != null ? DateTime.parse(row['end_time']) : null,
+          startKm: row['start_km'],
+          endKm: row['end_km'],
+          totalKm: row['total_km'],
+          status: row['status'],
+          nightStay: row['night_stay'] ?? false,
+          isSynced: true,
+          isStartTimeEdited: row['is_start_time_edited'] ?? false,
+        );
+        await logBox.put(log.id, log);
+      }
+
+      // Fetch Expenses
+      final expensesResponse = await _supabase
+          .from('expenses')
+          .select()
+          .eq('driver_id', driverId);
+
+      final expenseBox = Hive.box<ExpenseLocal>(HiveSetup.expensesBox);
+      final supabaseExpenseIds = expensesResponse.map((row) => row['id'] as String).toSet();
+
+      // Delete local expenses that were synced but no longer exist in Supabase
+      final localExpenses = expenseBox.values.toList();
+      for (var exp in localExpenses) {
+        if (exp.isSynced && !supabaseExpenseIds.contains(exp.id)) {
+          await expenseBox.delete(exp.id);
+        }
+      }
+
+      for (var row in expensesResponse) {
+        final expense = ExpenseLocal(
+          id: row['id'],
+          logId: row['log_id'],
+          driverId: row['driver_id'],
+          expenseType: row['expense_type'],
+          amount: (row['amount'] as num).toDouble(),
+          createdAt: DateTime.parse(row['created_at']),
+          isSynced: true,
+        );
+        await expenseBox.put(expense.id, expense);
+      }
+    } catch (e) {
+      debugPrint('Error syncing down data: $e');
+    }
+  }
+
   void dispose() {
     _connectionSubscription?.cancel();
   }

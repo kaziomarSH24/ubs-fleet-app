@@ -34,8 +34,11 @@ class DailyLogLocal extends HiveObject {
   @HiveField(9)
   final bool nightStay;
   
-  @HiveField(10)
+  @HiveField(10, defaultValue: false)
   final bool isSynced; // true if synced with supabase, false if pending
+
+  @HiveField(11, defaultValue: false)
+  final bool isStartTimeEdited; // true if driver edited the start time when ending duty
 
   DailyLogLocal({
     required this.id,
@@ -49,5 +52,6 @@ class DailyLogLocal extends HiveObject {
     required this.status,
     required this.nightStay,
     this.isSynced = false,
+    this.isStartTimeEdited = false,
   });
 }

@@ -402,7 +402,8 @@ class _DailyLogScreenState extends ConsumerState<DailyLogScreen> {
                            final endKm = int.tryParse(_endKmController.text) ?? widget.startKm;
                            await ref.read(driverRepositoryProvider).endDuty(
                              logId: activeLog.id, 
-                             endKm: endKm
+                             endKm: endKm,
+                             actualStartTime: _startTime,
                            );
                            
                            final expense = double.tryParse(_tollParkingController.text) ?? 0;
