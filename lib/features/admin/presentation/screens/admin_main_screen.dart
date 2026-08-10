@@ -55,7 +55,7 @@ class AdminMainScreen extends StatelessWidget {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(LucideIcons.layoutDashboard),
             label: 'Home',
