@@ -10,14 +10,6 @@ class AdminMainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: child,
-      bottomNavigationBar: _buildBottomNav(context),
-    );
-  }
-
-  Widget _buildBottomNav(BuildContext context) {
     final String location = GoRouterState.of(context).uri.path;
     int currentIndex = 0;
     
@@ -25,37 +17,97 @@ class AdminMainScreen extends StatelessWidget {
     if (location.startsWith('/admin/drivers')) currentIndex = 2;
     if (location.startsWith('/admin/billing')) currentIndex = 3;
 
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth >= 800) {
+            // Desktop/Web layout with NavigationRail
+            return Row(
+              children: [
+                NavigationRail(
+                  backgroundColor: AppColors.surface,
+                  selectedIndex: currentIndex,
+                  onDestinationSelected: (index) => _onNavigate(context, index),
+                  labelType: NavigationRailLabelType.all,
+                  selectedIconTheme: const IconThemeData(color: AppColors.primary),
+                  unselectedIconTheme: IconThemeData(color: AppColors.textSecondary),
+                  selectedLabelTextStyle: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                  unselectedLabelTextStyle: TextStyle(color: AppColors.textSecondary),
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(LucideIcons.layoutDashboard),
+                      label: Text('Dashboard'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(LucideIcons.car),
+                      label: Text('Fleet'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(LucideIcons.users),
+                      label: Text('Drivers'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(LucideIcons.receipt),
+                      label: Text('Billing'),
+                    ),
+                  ],
+                ),
+                VerticalDivider(thickness: 1, width: 1, color: Colors.white24),
+                Expanded(child: child),
+              ],
+            );
+          } else {
+            // Mobile layout with BottomNavigationBar
+            return child;
+          }
+        },
+      ),
+      bottomNavigationBar: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 800) {
+            return _buildBottomNav(context, currentIndex);
+          }
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+  }
+
+  void _onNavigate(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go('/admin-dashboard');
+        break;
+      case 1:
+        context.go('/admin/fleet');
+        break;
+      case 2:
+        context.go('/admin/drivers');
+        break;
+      case 3:
+        context.go('/admin/billing');
+        break;
+    }
+  }
+
+  Widget _buildBottomNav(BuildContext context, int currentIndex) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
         border: Border(
-          top: BorderSide(color: AppColors.primary.withOpacity(0.2), width: 1),
+          top: BorderSide(color: Colors.white24, width: 1),
         ),
       ),
       child: BottomNavigationBar(
         currentIndex: currentIndex,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              context.go('/admin-dashboard');
-              break;
-            case 1:
-              context.go('/admin/fleet');
-              break;
-            case 2:
-              context.go('/admin/drivers');
-              break;
-            case 3:
-              context.go('/admin/billing');
-              break;
-          }
-        },
+        onTap: (index) => _onNavigate(context, index),
         backgroundColor: Colors.transparent,
         elevation: 0,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(LucideIcons.layoutDashboard),
             label: 'Home',

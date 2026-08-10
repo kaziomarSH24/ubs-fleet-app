@@ -4,51 +4,99 @@ class AdminRepository {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   /// Fetch all company drivers
-  Future<List<Map<String, dynamic>>> getAllDrivers() async {
-    final response = await _supabase
+  Future<List<Map<String, dynamic>>> getAllDrivers({String? clientId}) async {
+    var query = _supabase
         .from('profiles')
         .select()
-        .eq('role', 'driver')
-        .order('full_name', ascending: true);
+        .eq('role', 'driver');
+    
+    if (clientId != null) {
+      query = query.eq('client_id', clientId);
+    }
+    
+    final response = await query.order('full_name', ascending: true);
     return response;
   }
 
   /// Fetch all vehicles
-  Future<List<Map<String, dynamic>>> getAllVehicles() async {
-    final response = await _supabase
+  Future<List<Map<String, dynamic>>> getAllVehicles({String? clientId}) async {
+    var query = _supabase
         .from('vehicles')
-        .select('*, profiles:current_driver_id(full_name)')
-        .order('plate_number', ascending: true);
+        .select('*, profiles:current_driver_id(full_name)');
+        
+    if (clientId != null) {
+      query = query.eq('client_id', clientId);
+    }
+    
+    final response = await query.order('plate_number', ascending: true);
     return response;
+  }
+
+  // Fetch all clients
+  Future<List<Map<String, dynamic>>> getClients() async {
+    try {
+      final response = await _supabase
+          .from('clients')
+          .select()
+          .order('name', ascending: true);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      throw Exception('Failed to fetch clients: $e');
+    }
   }
 
   /// Fetch recent logs (default 50)
-  Future<List<Map<String, dynamic>>> getRecentLogs({int limit = 50}) async {
-    final response = await _supabase
-        .from('daily_logs')
-        .select('*, profiles:driver_id(full_name), vehicles:vehicle_id(plate_number)')
-        .order('start_time', ascending: false)
-        .limit(limit);
-    return response;
+  Future<List<Map<String, dynamic>>> getRecentLogs({int limit = 50, String? clientId}) async {
+    try {
+      var query = _supabase
+          .from('daily_logs')
+          .select('''
+            *,
+            profiles!inner(full_name, client_id),
+            vehicles(plate_number)
+          ''');
+          
+      if (clientId != null) {
+        query = query.eq('profiles.client_id', clientId);
+      }
+      
+      final response = await query.order('start_time', ascending: false).limit(limit);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      throw Exception('Failed to fetch logs: $e');
+    }
   }
 
   /// Fetch pending expenses
-  Future<List<Map<String, dynamic>>> getPendingExpenses() async {
-    // Assuming there's a 'status' field in expenses, if not we will fetch all for now
-    // Wait, the expenses table doesn't have a status field yet!
-    // We'll just fetch recent expenses.
-    final response = await _supabase
-        .from('expenses')
-        .select('*, profiles:driver_id(full_name)')
-        .order('created_at', ascending: false)
-        .limit(50);
-    return response;
+  Future<List<Map<String, dynamic>>> getPendingExpenses({String? clientId}) async {
+    try {
+      var query = _supabase
+          .from('expenses')
+          .select('''
+            *,
+            profiles!inner(full_name, client_id)
+          ''');
+          
+      if (clientId != null) {
+        query = query.eq('profiles.client_id', clientId);
+      }
+      
+      final response = await query.order('created_at', ascending: false).limit(50);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      throw Exception('Failed to fetch expenses: $e');
+    }
   }
 
   /// Get dashboard statistics
-  Future<Map<String, dynamic>> getDashboardStats() async {
+  Future<Map<String, dynamic>> getDashboardStats({String? clientId}) async {
     try {
-      final vehiclesCount = await _supabase.from('vehicles').count();
+      var vehiclesQuery = _supabase.from('vehicles').select('id');
+      if (clientId != null) {
+        vehiclesQuery = vehiclesQuery.eq('client_id', clientId);
+      }
+      final vehiclesCount = await vehiclesQuery.count();
+      
       final activeDriversCount = await _supabase
           .from('daily_logs')
           .select('driver_id')

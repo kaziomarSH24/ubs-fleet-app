@@ -5,17 +5,27 @@ final adminRepositoryProvider = Provider<AdminRepository>((ref) {
   return AdminRepository();
 });
 
+final selectedClientProvider = StateProvider<String?>((ref) => null);
+
+final clientsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final repo = ref.read(adminRepositoryProvider);
+  return repo.getClients();
+});
+
 final dashboardStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final repo = ref.read(adminRepositoryProvider);
-  return repo.getDashboardStats();
+  final clientId = ref.watch(selectedClientProvider);
+  return repo.getDashboardStats(clientId: clientId);
 });
 
 final recentLogsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final repo = ref.read(adminRepositoryProvider);
-  return repo.getRecentLogs(limit: 5); // Fetch 5 recent logs for dashboard
+  final clientId = ref.watch(selectedClientProvider);
+  return repo.getRecentLogs(limit: 5, clientId: clientId); // Fetch 5 recent logs for dashboard
 });
 
 final pendingExpensesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final repo = ref.read(adminRepositoryProvider);
-  return repo.getPendingExpenses();
+  final clientId = ref.watch(selectedClientProvider);
+  return repo.getPendingExpenses(clientId: clientId);
 });
