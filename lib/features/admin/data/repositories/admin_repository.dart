@@ -95,7 +95,8 @@ class AdminRepository {
       if (clientId != null) {
         vehiclesQuery = vehiclesQuery.eq('client_id', clientId);
       }
-      final vehiclesCount = await vehiclesQuery.count();
+      final vehiclesList = await vehiclesQuery;
+      final vehiclesCount = vehiclesList.length;
       
       final activeDriversCount = await _supabase
           .from('daily_logs')
