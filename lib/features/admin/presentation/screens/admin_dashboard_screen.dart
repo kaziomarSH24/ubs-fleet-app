@@ -16,9 +16,15 @@ class AdminDashboardScreen extends ConsumerWidget {
     final logsAsync = ref.watch(recentLogsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF07090E), // Deeper base matching the image
+      backgroundColor: const Color(0xFF030712), // Deep rich black to make cards pop
       body: Stack(
         children: [
+          // Background Dot Pattern for Glassmorphism
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _DotGridPainter(),
+            ),
+          ),
           // Top Left Teal Glow
           Positioned(
             top: -50,
@@ -28,9 +34,9 @@ class AdminDashboardScreen extends ConsumerWidget {
               height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF19556A).withValues(alpha: 0.15),
+                color: const Color(0xFF19556A).withValues(alpha: 0.25),
                 boxShadow: [
-                  BoxShadow(color: const Color(0xFF19556A).withValues(alpha: 0.15), blurRadius: 120, spreadRadius: 60)
+                  BoxShadow(color: const Color(0xFF19556A).withValues(alpha: 0.25), blurRadius: 120, spreadRadius: 60)
                 ]
               ),
             ),
@@ -44,9 +50,9 @@ class AdminDashboardScreen extends ConsumerWidget {
               height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF5E2C96).withValues(alpha: 0.15),
+                color: const Color(0xFF5E2C96).withValues(alpha: 0.25),
                 boxShadow: [
-                  BoxShadow(color: const Color(0xFF5E2C96).withValues(alpha: 0.15), blurRadius: 120, spreadRadius: 60)
+                  BoxShadow(color: const Color(0xFF5E2C96).withValues(alpha: 0.25), blurRadius: 120, spreadRadius: 60)
                 ]
               ),
             ),
@@ -234,9 +240,9 @@ class AdminDashboardScreen extends ConsumerWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF00F2FE).withValues(alpha: 0.15),
-                          blurRadius: 20,
-                          spreadRadius: -2,
+                          color: const Color(0xFF00F2FE).withValues(alpha: 0.3),
+                          blurRadius: 15,
+                          spreadRadius: 2,
                         ),
                       ],
                     ),
@@ -258,17 +264,6 @@ class AdminDashboardScreen extends ConsumerWidget {
                       circularStrokeCap: CircularStrokeCap.round,
                       backgroundColor: Colors.white.withValues(alpha: 0.05),
                       progressColor: const Color(0xFF00F2FE),
-                      widgetIndicator: Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(color: const Color(0xFF00F2FE), blurRadius: 8, spreadRadius: 2)
-                          ]
-                        ),
-                      ),
                     ),
                   ),
                 ],
@@ -668,4 +663,25 @@ class _NeonCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DotGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.03)
+      ..style = PaintingStyle.fill;
+
+    const double spacing = 20.0;
+    const double radius = 1.0;
+
+    for (double x = 0; x < size.width; x += spacing) {
+      for (double y = 0; y < size.height; y += spacing) {
+        canvas.drawCircle(Offset(x, y), radius, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
