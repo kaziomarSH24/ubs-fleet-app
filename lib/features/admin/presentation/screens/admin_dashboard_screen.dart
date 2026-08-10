@@ -15,7 +15,7 @@ class AdminDashboardScreen extends ConsumerWidget {
     // final expensesAsync = ref.watch(pendingExpensesProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Darker slate background
+      backgroundColor: const Color(0xFF0B0F19), // Deeper, more premium dark background
       body: RefreshIndicator(
         color: Colors.cyanAccent,
         backgroundColor: const Color(0xFF1E293B),
@@ -240,12 +240,15 @@ class AdminDashboardScreen extends ConsumerWidget {
                 circularStrokeCap: CircularStrokeCap.round,
                 backgroundColor: const Color(0xFF1E293B),
                 progressColor: Colors.cyanAccent,
-                // Add a subtle glow
+                // Refined subtle glow
                 widgetIndicator: Container(
+                  width: 12,
+                  height: 12,
                   decoration: BoxDecoration(
+                    color: Colors.cyanAccent,
                     shape: BoxShape.circle,
                     boxShadow: [
-                      BoxShadow(color: Colors.cyanAccent.withValues(alpha: 0.5), blurRadius: 10, spreadRadius: 2),
+                      BoxShadow(color: Colors.cyanAccent.withValues(alpha: 0.8), blurRadius: 8, spreadRadius: 1),
                     ],
                   ),
                 ),
@@ -335,15 +338,15 @@ class AdminDashboardScreen extends ConsumerWidget {
       child: logsAsync.when(
         data: (logs) {
           // For mockup purposes, we show some fake driver stats since we don't have real trips calculated yet.
-          // In a real scenario, this would aggregate logs per driver.
-          return Column(
-            children: [
-              _buildLeaderboardRow('1', 'Emily R.', '4.9', '12.4k KM', '450+', Colors.amber),
-              const Divider(color: Colors.white10, height: 24),
-              _buildLeaderboardRow('2', 'David S.', '4.8', '11.8k KM', '430+', Colors.grey.shade400),
-              const Divider(color: Colors.white10, height: 24),
-              _buildLeaderboardRow('3', 'Sarah K.', '4.8', '11.2k KM', '410+', Colors.brown.shade400),
-            ],
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 3,
+            itemBuilder: (context, index) {
+              if (index == 0) return _buildLeaderboardRow('1', 'Emily R.', '4.9', '12.4k KM', '450+', Colors.amber);
+              if (index == 1) return _buildLeaderboardRow('2', 'David S.', '4.8', '11.8k KM', '430+', Colors.grey.shade400);
+              return _buildLeaderboardRow('3', 'Sarah K.', '4.8', '11.2k KM', '410+', Colors.brown.shade400);
+            },
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -353,51 +356,60 @@ class AdminDashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildLeaderboardRow(String rank, String name, String rating, String km, String trips, Color rankColor) {
-    return Row(
-      children: [
-        // Rank Badge
-        Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            color: rankColor.withValues(alpha: 0.2),
-            shape: BoxShape.circle,
-            border: Border.all(color: rankColor, width: 1),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B).withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1),
+      ),
+      child: Row(
+        children: [
+          // Rank Badge
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: rankColor.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+              border: Border.all(color: rankColor, width: 1),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              rank,
+              style: TextStyle(color: rankColor, fontWeight: FontWeight.bold, fontSize: 12),
+            ),
           ),
-          alignment: Alignment.center,
-          child: Text(
-            rank,
-            style: TextStyle(color: rankColor, fontWeight: FontWeight.bold, fontSize: 12),
+          const SizedBox(width: 12),
+          // Avatar
+          const CircleAvatar(
+            radius: 16,
+            backgroundColor: Color(0xFF334155),
+            child: Icon(LucideIcons.user, size: 16, color: Colors.white70),
           ),
-        ),
-        const SizedBox(width: 12),
-        // Avatar
-        const CircleAvatar(
-          radius: 16,
-          backgroundColor: Color(0xFF334155),
-          child: Icon(LucideIcons.user, size: 16, color: Colors.white70),
-        ),
-        const SizedBox(width: 12),
-        // Details
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(width: 12),
+          // Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                Text('Rating: $rating', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              ],
+            ),
+          ),
+          Text(km, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-              Text('Rating: $rating', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              Text(trips, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              const Text('trips', style: TextStyle(color: Colors.white54, fontSize: 10)),
             ],
           ),
-        ),
-        Text(km, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-        const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(trips, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            const Text('trips', style: TextStyle(color: Colors.white54, fontSize: 10)),
-          ],
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -528,14 +540,14 @@ class _NeonCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10, width: 1),
+        color: const Color(0xFF151C2C), // Slightly elevated from background
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.4),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
