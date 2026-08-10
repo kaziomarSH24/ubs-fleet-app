@@ -73,6 +73,7 @@ class SyncService {
             final logId = payload['id'];
             payload.remove('id');
             await _supabase.from('daily_logs').update(payload).eq('id', logId);
+            _markLogAsSynced(logId);
             break;
           case 'CREATE_EXPENSE':
             await _supabase.from('expenses').insert(payload);

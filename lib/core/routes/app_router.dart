@@ -10,6 +10,12 @@ import '../../features/driver/presentation/screens/driver_main_screen.dart';
 import '../../features/driver/presentation/screens/driver_profile_screen.dart';
 import '../../features/driver/presentation/screens/driver_wallet_screen.dart';
 
+import '../../features/admin/presentation/screens/admin_main_screen.dart';
+import '../../features/admin/presentation/screens/admin_dashboard_screen.dart';
+import '../../features/admin/presentation/screens/admin_fleet_screen.dart';
+import '../../features/admin/presentation/screens/admin_drivers_screen.dart';
+import '../../features/admin/presentation/screens/admin_billing_screen.dart';
+
 final appRouter = GoRouter(
   initialLocation: '/',
   routes: [
@@ -45,6 +51,29 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/driver/wallet',
           builder: (context, state) => const DriverWalletScreen(),
+        ),
+      ],
+    ),
+    ShellRoute(
+      builder: (context, state, child) {
+        return AdminMainScreen(child: child);
+      },
+      routes: [
+        GoRoute(
+          path: '/admin-dashboard',
+          builder: (context, state) => const AdminDashboardScreen(),
+        ),
+        GoRoute(
+          path: '/admin/fleet',
+          builder: (context, state) => const AdminFleetScreen(),
+        ),
+        GoRoute(
+          path: '/admin/drivers',
+          builder: (context, state) => const AdminDriversScreen(),
+        ),
+        GoRoute(
+          path: '/admin/billing',
+          builder: (context, state) => const AdminBillingScreen(),
         ),
       ],
     ),

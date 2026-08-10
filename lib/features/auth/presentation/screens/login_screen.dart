@@ -43,7 +43,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await authService.signInWithIdOrPhone(input: input, pin: pin);
       
       if (mounted) {
-        context.go('/driver-home'); // Navigate to driver home on success
+        final authService = ref.read(authServiceProvider);
+        final profile = authService.getLocalProfile();
+        
+        if (profile?.role == 'admin') {
+          context.go('/admin-dashboard');
+        } else {
+          context.go('/driver-home');
+        }
       }
     } on AuthException catch (e) {
       if (mounted) {

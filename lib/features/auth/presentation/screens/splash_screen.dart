@@ -37,7 +37,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           }
         }
         
-        if (mounted) context.go('/driver-home');
+        if (mounted) {
+          final profile = authService.getLocalProfile();
+          if (profile?.role == 'admin') {
+            context.go('/admin-dashboard');
+          } else {
+            context.go('/driver-home');
+          }
+        }
       } else {
         if (mounted) context.go('/onboarding');
       }
