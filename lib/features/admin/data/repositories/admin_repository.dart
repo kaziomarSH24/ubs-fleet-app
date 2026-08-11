@@ -212,4 +212,46 @@ class AdminRepository {
       throw Exception('Failed to upload document: $e');
     }
   }
+
+  /// Delete a vehicle document
+  Future<void> deleteVehicleDocument(String docId) async {
+    try {
+      // Note: Ideally, we should also delete the file from storage, but for now we just delete the db record.
+      // Or we can fetch the url, parse path, and delete from storage.
+      await _supabase.from('vehicle_documents').delete().eq('id', docId);
+    } catch (e) {
+      throw Exception('Failed to delete document: $e');
+    }
+  }
+
+  /// Delete a vehicle
+  Future<void> deleteVehicle(String vehicleId) async {
+    try {
+      await _supabase.from('vehicles').delete().eq('id', vehicleId);
+    } catch (e) {
+      throw Exception('Failed to delete vehicle: $e');
+    }
+  }
+
+  /// Fetch vehicle models
+  Future<List<String>> getVehicleModels() async {
+    try {
+      final response = await _supabase
+          .from('vehicle_models')
+          .select('name')
+          .order('name', ascending: true);
+      return (response as List).map((e) => e['name'] as String).toList();
+    } catch (e) {
+      throw Exception('Failed to fetch vehicle models: $e');
+    }
+  }
+
+  /// Add a new vehicle model
+  Future<void> addVehicleModel(String name) async {
+    try {
+      await _supabase.from('vehicle_models').insert({'name': name});
+    } catch (e) {
+      throw Exception('Failed to add vehicle model: $e');
+    }
+  }
 }

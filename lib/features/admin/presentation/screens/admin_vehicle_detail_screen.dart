@@ -2,8 +2,9 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_snackbar.dart';
@@ -19,7 +20,6 @@ class AdminVehicleDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminVehicleDetailScreenState extends ConsumerState<AdminVehicleDetailScreen> {
-  final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
   
   late String _currentStatus;
@@ -55,8 +55,14 @@ class _AdminVehicleDetailScreenState extends ConsumerState<AdminVehicleDetailScr
   }
 
   Future<void> _uploadDocument(String docType) async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image == null) return;
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx'],
+    );
+    if (result == null || result.files.isEmpty) return;
+    
+    final file = result.files.first;
+    if (file.path == null) return;
 
     DateTime? expiryDate;
     
@@ -77,8 +83,8 @@ class _AdminVehicleDetailScreenState extends ConsumerState<AdminVehicleDetailScr
       await ref.read(adminRepositoryProvider).uploadVehicleDocument(
         vehicleId: widget.vehicle['id'],
         docType: docType,
-        file: File(image.path),
-        fileName: image.name,
+        file: File(file.path!),
+        fileName: file.name,
         expiryDate: expiryDate,
       );
       
@@ -89,6 +95,87 @@ class _AdminVehicleDetailScreenState extends ConsumerState<AdminVehicleDetailScr
       if (mounted) AppSnackbar.showError(context, 'Failed to upload document: $e');
     } finally {
       if (mounted) setState(() => _isUploading = false);
+    }
+  }
+
+  Future<void> _deleteVehicle() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: AlertDialog(
+          backgroundColor: const Color(0xFF171A24).withValues(alpha: 0.6),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          title: const Text('Delete Vehicle?', style: TextStyle(color: Colors.white)),
+          content: const Text('Are you sure you want to delete this vehicle? This action cannot be undone.', style: TextStyle(color: Colors.white70)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      await ref.read(adminRepositoryProvider).deleteVehicle(widget.vehicle['id']);
+      ref.invalidate(vehiclesProvider);
+      if (mounted) {
+        AppSnackbar.showSuccess(context, 'Vehicle deleted successfully');
+        Navigator.pop(context); // Go back to list
+      }
+    } catch (e) {
+      if (mounted) AppSnackbar.showError(context, 'Failed to delete vehicle: $e');
+    }
+  }
+
+  Future<void> _deleteDocument(String docId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: AlertDialog(
+          backgroundColor: const Color(0xFF171A24).withValues(alpha: 0.6),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          title: const Text('Delete Document?', style: TextStyle(color: Colors.white)),
+          content: const Text('Are you sure you want to delete this document?', style: TextStyle(color: Colors.white70)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      await ref.read(adminRepositoryProvider).deleteVehicleDocument(docId);
+      ref.invalidate(vehicleDocumentsProvider(widget.vehicle['id']));
+      if (mounted) AppSnackbar.showSuccess(context, 'Document deleted');
+    } catch (e) {
+      if (mounted) AppSnackbar.showError(context, 'Failed to delete document: $e');
     }
   }
 
@@ -103,6 +190,12 @@ class _AdminVehicleDetailScreenState extends ConsumerState<AdminVehicleDetailScr
         backgroundColor: const Color(0xFF0F172A),
         title: Text(widget.vehicle['plate_number'] ?? 'Vehicle Details', style: const TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.trash2, color: Colors.redAccent),
+            onPressed: _deleteVehicle,
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -243,13 +336,33 @@ class _AdminVehicleDetailScreenState extends ConsumerState<AdminVehicleDetailScr
                               expiry != null ? 'Expires: ${DateFormat.yMMMd().format(expiry)}' : 'No expiry',
                               style: TextStyle(color: isExpired ? Colors.redAccent : Colors.white70),
                             ),
-                            trailing: const Icon(LucideIcons.chevronRight, color: Colors.white30),
+                            trailing: IconButton(
+                              icon: const Icon(LucideIcons.trash2, color: Colors.white30),
+                              onPressed: () => _deleteDocument(doc['id']),
+                            ),
                           ),
                         );
                       },
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator(color: Colors.cyanAccent)),
+                  loading: () => ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: 3,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      )
+                      .animate(onPlay: (controller) => controller.repeat())
+                      .shimmer(duration: 1500.ms, color: Colors.white24)
+                      .fade(duration: 500.ms);
+                    },
+                  ),
                   error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.red))),
                 ),
                 const SizedBox(height: 40),

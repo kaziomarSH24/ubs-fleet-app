@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:ui';
@@ -211,7 +212,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                   height: 20,
                   child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
                 ),
-                error: (_, __) => const Text('Error', style: TextStyle(color: Colors.redAccent)),
+                error: (err, stack) => const Text('Error', style: TextStyle(color: Colors.redAccent)),
               ),
             ],
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui';
 import '../providers/admin_providers.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -96,7 +97,23 @@ class AdminFleetScreen extends ConsumerWidget {
                         ),
                       );
                     },
-                    loading: () => const Center(child: CircularProgressIndicator(color: Colors.cyanAccent)),
+                    loading: () => ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      itemCount: 6,
+                      itemBuilder: (context, index) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        )
+                        .animate(onPlay: (controller) => controller.repeat())
+                        .shimmer(duration: 1500.ms, color: Colors.white24)
+                        .fade(duration: 500.ms);
+                      },
+                    ),
                     error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
                   ),
                 ),
@@ -105,15 +122,18 @@ class AdminFleetScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.primary,
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => const AddVehicleDialog(),
-          );
-        },
-        child: const Icon(LucideIcons.plus, color: Colors.black),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(right: 8.0, bottom: 8.0),
+        child: FloatingActionButton(
+          backgroundColor: AppColors.primary,
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) => const AddVehicleDialog(),
+            );
+          },
+          child: const Icon(LucideIcons.plus, color: Colors.black),
+        ),
       ),
     );
   }

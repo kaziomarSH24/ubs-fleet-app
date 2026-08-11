@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_snackbar.dart';
@@ -13,7 +14,8 @@ class AddVehicleDialog extends ConsumerStatefulWidget {
 
 class _AddVehicleDialogState extends ConsumerState<AddVehicleDialog> {
   final _formKey = GlobalKey<FormState>();
-  String _vehicleModel = 'Toyota HiAce';
+  String? _vehicleModel;
+  final _newModelController = TextEditingController();
   final _yearController = TextEditingController();
   final _plateController = TextEditingController();
   String _fuelType = 'Octane';
@@ -21,6 +23,7 @@ class _AddVehicleDialogState extends ConsumerState<AddVehicleDialog> {
 
   @override
   void dispose() {
+    _newModelController.dispose();
     _yearController.dispose();
     _plateController.dispose();
     super.dispose();
@@ -32,7 +35,17 @@ class _AddVehicleDialogState extends ConsumerState<AddVehicleDialog> {
     setState(() => _isLoading = true);
     try {
       final repo = ref.read(adminRepositoryProvider);
-      final fullModelName = '${_vehicleModel} ${_yearController.text.trim()}'.trim();
+      
+      String finalModel = _vehicleModel ?? '';
+      if (_vehicleModel == 'Add New Model') {
+        finalModel = _newModelController.text.trim();
+        if (finalModel.isNotEmpty) {
+          await repo.addVehicleModel(finalModel); // Save the new model to DB
+          ref.invalidate(vehicleModelsProvider); // refresh provider
+        }
+      }
+
+      final fullModelName = '$finalModel ${_yearController.text.trim()}'.trim();
       
       await repo.addVehicle(
         model: fullModelName,
@@ -57,28 +70,56 @@ class _AddVehicleDialogState extends ConsumerState<AddVehicleDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: const Color(0xFF171A24),
-      title: const Text('Add New Vehicle', style: TextStyle(color: Colors.white)),
-      content: Form(
+    final modelsAsync = ref.watch(vehicleModelsProvider);
+
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+      child: AlertDialog(
+        backgroundColor: const Color(0xFF171A24).withValues(alpha: 0.6),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        title: const Text('Add New Vehicle', style: TextStyle(color: Colors.white)),
+        content: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            DropdownButtonFormField<String>(
-              value: _vehicleModel,
-              dropdownColor: const Color(0xFF171A24),
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Vehicle Model',
-                labelStyle: TextStyle(color: Colors.white54),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-              ),
-              items: ['Toyota HiAce', 'Toyota Noah', 'Toyota X-Noah', 'Sedan', 'Pickup', 'Microbus', 'Other']
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
-              onChanged: (v) => setState(() => _vehicleModel = v!),
+            modelsAsync.when(
+              data: (models) {
+                final options = [...models, 'Add New Model'];
+                return DropdownButtonFormField<String>(
+                  value: _vehicleModel,
+                  dropdownColor: const Color(0xFF171A24),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'Vehicle Model',
+                    labelStyle: TextStyle(color: Colors.white54),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  ),
+                  items: options.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                  onChanged: (v) => setState(() => _vehicleModel = v),
+                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Text('Error loading models', style: TextStyle(color: Colors.red)),
             ),
+            if (_vehicleModel == 'Add New Model') ...[
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _newModelController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Enter New Model',
+                  labelStyle: TextStyle(color: Colors.white54),
+                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                ),
+                validator: (v) => v!.isEmpty ? 'Required' : null,
+              ),
+            ],
             const SizedBox(height: 16),
             TextFormField(
               controller: _yearController,
@@ -133,6 +174,7 @@ class _AddVehicleDialogState extends ConsumerState<AddVehicleDialog> {
             : const Text('Add Vehicle', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         ),
       ],
+    ),
     );
   }
 }
