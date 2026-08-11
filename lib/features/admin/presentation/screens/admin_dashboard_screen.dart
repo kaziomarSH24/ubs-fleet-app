@@ -16,9 +16,24 @@ class AdminDashboardScreen extends ConsumerWidget {
     final logsAsync = ref.watch(recentLogsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF030712), // Deep rich black to make cards pop
+      backgroundColor: Colors.black, // Fallback
       body: Stack(
         children: [
+          // 1. Rich Deep Gradient Background
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(0, -0.4),
+                  radius: 1.2,
+                  colors: [
+                    Color(0xFF0F172A), // Soft dark slate in center
+                    Color(0xFF020617), // Pure deep dark at edges
+                  ],
+                ),
+              ),
+            ),
+          ),
           // Background Dot Pattern for Glassmorphism
           Positioned.fill(
             child: CustomPaint(
@@ -34,9 +49,9 @@ class AdminDashboardScreen extends ConsumerWidget {
               height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF19556A).withValues(alpha: 0.25),
+                color: const Color(0xFF19556A).withValues(alpha: 0.35),
                 boxShadow: [
-                  BoxShadow(color: const Color(0xFF19556A).withValues(alpha: 0.25), blurRadius: 120, spreadRadius: 60)
+                  BoxShadow(color: const Color(0xFF19556A).withValues(alpha: 0.35), blurRadius: 120, spreadRadius: 60)
                 ]
               ),
             ),
@@ -50,10 +65,29 @@ class AdminDashboardScreen extends ConsumerWidget {
               height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF5E2C96).withValues(alpha: 0.25),
+                color: const Color(0xFF5E2C96).withValues(alpha: 0.35),
                 boxShadow: [
-                  BoxShadow(color: const Color(0xFF5E2C96).withValues(alpha: 0.25), blurRadius: 120, spreadRadius: 60)
+                  BoxShadow(color: const Color(0xFF5E2C96).withValues(alpha: 0.35), blurRadius: 120, spreadRadius: 60)
                 ]
+              ),
+            ),
+          ),
+          // Bottom Center Accent Glow
+          Positioned(
+            bottom: -150,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                width: 400,
+                height: 200,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF00F2FE).withValues(alpha: 0.15),
+                  boxShadow: [
+                    BoxShadow(color: const Color(0xFF00F2FE).withValues(alpha: 0.15), blurRadius: 120, spreadRadius: 80)
+                  ]
+                ),
               ),
             ),
           ),
@@ -644,8 +678,8 @@ class _NeonCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withValues(alpha: 0.12), // Brighter top left specular highlight
-                Colors.white.withValues(alpha: 0.03), // Fades out
+                Colors.white.withValues(alpha: 0.16), // Brighter top left specular highlight
+                Colors.white.withValues(alpha: 0.05), // Fades out
               ],
             ),
             borderRadius: BorderRadius.circular(20),

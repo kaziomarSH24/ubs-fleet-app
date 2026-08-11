@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AdminRepository {
@@ -119,6 +120,96 @@ class AdminRepository {
         'active_drivers': 0,
         'in_workshop': 0,
       };
+    }
+  }
+
+  /// Add a new vehicle
+  Future<void> addVehicle({
+    required String model,
+    required String plateNumber,
+    required String fuelType,
+  }) async {
+    try {
+      await _supabase.from('vehicles').insert({
+        'model': model,
+        'plate_number': plateNumber,
+        'fuel_type': fuelType,
+        'status': 'active', // default status
+      });
+    } catch (e) {
+      throw Exception('Failed to add vehicle: $e');
+    }
+  }
+
+  /// Update vehicle status
+  Future<void> updateVehicleStatus(String vehicleId, String status) async {
+    try {
+      await _supabase
+          .from('vehicles')
+          .update({'status': status})
+          .eq('id', vehicleId);
+    } catch (e) {
+      throw Exception('Failed to update vehicle status: $e');
+    }
+  }
+
+  /// Assign driver to vehicle
+  Future<void> assignDriverToVehicle(String vehicleId, String? driverId) async {
+    try {
+      if (driverId != null) {
+        // Unassign this driver from any other vehicle they might be assigned to
+        await _supabase
+            .from('vehicles')
+            .update({'current_driver_id': null})
+            .eq('current_driver_id', driverId);
+      }
+
+      // Assign the driver to the new vehicle
+      await _supabase
+          .from('vehicles')
+          .update({'current_driver_id': driverId})
+          .eq('id', vehicleId);
+    } catch (e) {
+      throw Exception('Failed to assign driver: $e');
+    }
+  }
+
+  /// Fetch documents for a specific vehicle
+  Future<List<Map<String, dynamic>>> getVehicleDocuments(String vehicleId) async {
+    try {
+      final response = await _supabase
+          .from('vehicle_documents')
+          .select()
+          .eq('vehicle_id', vehicleId)
+          .order('created_at', ascending: false);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      throw Exception('Failed to fetch vehicle documents: $e');
+    }
+  }
+
+  /// Upload a vehicle document
+  Future<void> uploadVehicleDocument({
+    required String vehicleId,
+    required String docType,
+    required File file,
+    required String fileName,
+    required DateTime? expiryDate,
+  }) async {
+    try {
+      final storagePath = '$vehicleId/$docType-${DateTime.now().millisecondsSinceEpoch}-$fileName';
+      
+      await _supabase.storage.from('vehicle_documents').upload(storagePath, file);
+      final fileUrl = _supabase.storage.from('vehicle_documents').getPublicUrl(storagePath);
+      
+      await _supabase.from('vehicle_documents').insert({
+        'vehicle_id': vehicleId,
+        'doc_type': docType,
+        'file_url': fileUrl,
+        'expiry_date': expiryDate?.toIso8601String(),
+      });
+    } catch (e) {
+      throw Exception('Failed to upload document: $e');
     }
   }
 }
