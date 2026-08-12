@@ -42,6 +42,11 @@ final driversProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   return repo.getAllDrivers(clientId: clientId);
 });
 
+final driverDocumentsProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, driverId) async {
+  final repo = ref.read(adminRepositoryProvider);
+  return repo.getDriverDocuments(driverId);
+});
+
 final vehicleDocumentsProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, vehicleId) async {
   final repo = ref.read(adminRepositoryProvider);
   return repo.getVehicleDocuments(vehicleId);

@@ -8,7 +8,7 @@ class AdminRepository {
   Future<List<Map<String, dynamic>>> getAllDrivers({String? clientId}) async {
     var query = _supabase
         .from('profiles')
-        .select()
+        .select('*, clients(*)')
         .eq('role', 'driver');
     
     if (clientId != null) {
@@ -252,6 +252,103 @@ class AdminRepository {
       await _supabase.from('vehicle_models').insert({'name': name});
     } catch (e) {
       throw Exception('Failed to add vehicle model: $e');
+    }
+  }
+
+  // ==========================================
+  // DRIVER MANAGEMENT
+  // ==========================================
+
+  /// Create a new driver using the RPC
+  Future<void> createDriver({
+    required String password,
+    required String phone,
+    required String fullName,
+    String? clientId,
+  }) async {
+    try {
+      await _supabase.rpc('admin_create_driver', params: {
+        'driver_password': password,
+        'driver_phone': phone,
+        'driver_full_name': fullName,
+        'assign_client_id': clientId,
+      });
+    } catch (e) {
+      throw Exception('Failed to create driver: $e');
+    }
+  }
+
+  /// Toggle driver status (active/inactive)
+  Future<void> toggleDriverStatus(String driverId, bool isActive) async {
+    try {
+      await _supabase
+          .from('profiles')
+          .update({'is_active': isActive})
+          .eq('id', driverId);
+    } catch (e) {
+      throw Exception('Failed to update driver status: $e');
+    }
+  }
+
+  /// Fetch documents for a specific driver
+  Future<List<Map<String, dynamic>>> getDriverDocuments(String driverId) async {
+    try {
+      final response = await _supabase
+          .from('driver_documents')
+          .select()
+          .eq('driver_id', driverId)
+          .order('created_at', ascending: false);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      throw Exception('Failed to fetch driver documents: $e');
+    }
+  }
+
+  /// Upload a driver document
+  Future<void> uploadDriverDocument({
+    required String driverId,
+    required String docType,
+    required File file,
+    required String fileName,
+    required DateTime? expiryDate,
+  }) async {
+    try {
+      final storagePath = 'drivers/$driverId/$docType-${DateTime.now().millisecondsSinceEpoch}-$fileName';
+      
+      // Ensure the 'driver_documents' storage bucket exists in Supabase, 
+      // or we can use a generic 'documents' bucket. Assuming 'driver_documents' for now.
+      await _supabase.storage.from('driver_documents').upload(storagePath, file);
+      
+      await _supabase.from('driver_documents').insert({
+        'driver_id': driverId,
+        'doc_type': docType,
+        'file_url': storagePath,
+        'expiry_date': expiryDate?.toIso8601String(),
+        'status': 'approved' // Uploaded by admin, so auto-approved
+      });
+    } catch (e) {
+      throw Exception('Failed to upload driver document: $e');
+    }
+  }
+
+  /// Delete a driver document
+  Future<void> deleteDriverDocument(String docId) async {
+    try {
+      await _supabase.from('driver_documents').delete().eq('id', docId);
+    } catch (e) {
+      throw Exception('Failed to delete driver document: $e');
+    }
+  }
+
+  /// Approve or Reject a driver document
+  Future<void> updateDriverDocumentStatus(String docId, String status) async {
+    try {
+      await _supabase
+          .from('driver_documents')
+          .update({'status': status})
+          .eq('id', docId);
+    } catch (e) {
+      throw Exception('Failed to update document status: $e');
     }
   }
 }
