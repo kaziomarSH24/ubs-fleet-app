@@ -5,6 +5,8 @@ import 'package:velocity_x/velocity_x.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_text_field.dart';
@@ -488,47 +490,80 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       children: [
         "MONTHLY STATS".text.color(Colors.white54).letterSpacing(1).make(),
         12.heightBox,
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.2)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Column(
+        FutureBuilder<Map<String, dynamic>?>(
+          future: Supabase.instance.client
+              .from('monthly_bills')
+              .select('total_bill_amount, status')
+              .eq('driver_id', driverId)
+              .eq('month_year', DateFormat('yyyy-MM').format(now))
+              .maybeSingle(),
+          builder: (context, snapshot) {
+            final bill = snapshot.data;
+            final isVerified = bill != null && bill['status'] == 'Verified';
+
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.2)),
+                  ),
+                  child: Column(
                     children: [
-                      const Icon(Icons.speed, color: Colors.cyanAccent, size: 28),
-                      8.heightBox,
-                      "Total KM".text.color(Colors.white70).size(12).make(),
-                      4.heightBox,
-                      formattedKm.text.white.bold.xl.make(),
+                      if (isVerified) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.verified, color: Colors.greenAccent, size: 20),
+                                8.widthBox,
+                                "Verified Bill".text.color(Colors.greenAccent).bold.make(),
+                              ],
+                            ),
+                            "Tk ${formatter.format(bill['total_bill_amount'])}".text.white.xl2.bold.make(),
+                          ],
+                        ),
+                        const Divider(color: Colors.white12, height: 24, thickness: 1),
+                      ],
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Column(
+                            children: [
+                              const Icon(Icons.speed, color: Colors.cyanAccent, size: 28),
+                              8.heightBox,
+                              "Claimed KM".text.color(Colors.white70).size(12).make(),
+                              4.heightBox,
+                              formattedKm.text.white.bold.xl.make(),
+                            ],
+                          ),
+                          Container(
+                            width: 1,
+                            height: 50,
+                            color: Colors.white12,
+                          ),
+                          Column(
+                            children: [
+                              const Icon(Icons.access_time, color: Colors.greenAccent, size: 28),
+                              8.heightBox,
+                              "Duty Hours".text.color(Colors.white70).size(12).make(),
+                              4.heightBox,
+                              formattedHours.text.white.bold.xl.make(),
+                            ],
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                  Container(
-                    width: 1,
-                    height: 50,
-                    color: Colors.white12,
-                  ),
-                  Column(
-                    children: [
-                      const Icon(Icons.access_time, color: Colors.greenAccent, size: 28),
-                      8.heightBox,
-                      "Duty Hours".text.color(Colors.white70).size(12).make(),
-                      4.heightBox,
-                      formattedHours.text.white.bold.xl.make(),
-                    ],
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ],
     );

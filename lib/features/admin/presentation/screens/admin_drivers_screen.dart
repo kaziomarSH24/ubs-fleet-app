@@ -161,9 +161,21 @@ class AdminDriversScreen extends ConsumerWidget {
                       ),
                       border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3), width: 1),
                     ),
-                    child: const Center(
-                      child: Icon(LucideIcons.user, color: Colors.cyanAccent, size: 24),
-                    ),
+                    child: driver['avatar_url'] != null && driver['avatar_url'].toString().isNotEmpty
+                        ? ClipOval(
+                            child: Image.network(
+                              driver['avatar_url'],
+                              fit: BoxFit.cover,
+                              width: 54,
+                              height: 54,
+                              errorBuilder: (context, error, stackTrace) => const Center(
+                                child: Icon(LucideIcons.user, color: Colors.cyanAccent, size: 24),
+                              ),
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(LucideIcons.user, color: Colors.cyanAccent, size: 24),
+                          ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
