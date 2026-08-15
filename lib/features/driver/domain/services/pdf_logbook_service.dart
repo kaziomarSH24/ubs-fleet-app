@@ -71,8 +71,8 @@ class PdfLogbookService {
         final dutyEnd = logsWithEnd.last.endTime!;
         
         final duration = dutyEnd.difference(dutyStart);
-        if (duration.inMinutes > 480) {
-          totalExtraMins += (duration.inMinutes - 480);
+        if (duration.inMinutes > 600) {
+          totalExtraMins += (duration.inMinutes - 600);
         }
       }
     });
@@ -251,8 +251,8 @@ class PdfLogbookService {
                         final duration = dutyEnd.difference(logs.first.startTime);
                         totalHour = '${duration.inHours}h ${duration.inMinutes.remainder(60)}m';
                         
-                        if (duration.inMinutes > 480) {
-                          final extraMins = duration.inMinutes - 480;
+                        if (duration.inMinutes > 600) {
+                          final extraMins = duration.inMinutes - 600;
                           extraService = '${(extraMins / 60.0).toStringAsFixed(1)}h';
                         }
                       }

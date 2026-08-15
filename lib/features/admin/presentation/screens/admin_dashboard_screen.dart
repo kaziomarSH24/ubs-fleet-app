@@ -8,6 +8,8 @@ import 'dart:ui';
 import '../../../../core/widgets/app_aurora_background.dart';
 import '../providers/admin_providers.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../auth/data/services/auth_service.dart';
+import 'package:go_router/go_router.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -146,6 +148,15 @@ class AdminDashboardScreen extends ConsumerWidget {
             IconButton(
               icon: const Icon(LucideIcons.bell, color: Colors.white70, size: 22),
               onPressed: () {},
+            ),
+            IconButton(
+              icon: const Icon(LucideIcons.logOut, color: Colors.redAccent, size: 22),
+              onPressed: () async {
+                await ref.read(authServiceProvider).signOut();
+                if (context.mounted) {
+                  context.go('/login');
+                }
+              },
             ),
             const CircleAvatar(
               radius: 18,

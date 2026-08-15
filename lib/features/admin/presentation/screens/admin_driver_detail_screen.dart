@@ -12,6 +12,10 @@ import '../../../../core/widgets/app_snackbar.dart';
 import '../providers/admin_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../driver/presentation/screens/driver_logs_screen.dart';
+import '../../../driver/data/repositories/driver_repository.dart';
+import 'package:velocity_x/velocity_x.dart';
+import 'package:percent_indicator/percent_indicator.dart';
+import 'dart:ui';
 
 class AdminDriverDetailScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> driver;
@@ -179,80 +183,133 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Profile Header
-            Center(
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.white.withValues(alpha: 0.1),
-                    child: const Icon(LucideIcons.user, size: 50, color: Colors.white54),
+            // Profile Header
+            Row(
+              children: [
+                // Glowing Avatar
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.cyanAccent.withValues(alpha: 0.5),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                    border: Border.all(color: Colors.cyanAccent, width: 2),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.driver['full_name'] ?? 'Unknown',
-                    style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  child: const CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Color(0xFF171A24),
+                    child: Icon(Icons.person, color: Colors.white70, size: 45),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${widget.driver['employee_id']}',
-                    style: const TextStyle(color: Colors.cyanAccent, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      clientName,
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Status Toggle
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                ),
+                20.widthBox,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _isActive ? 'Status: Active' : 'Status: Inactive',
-                        style: TextStyle(
-                          color: _isActive ? Colors.cyanAccent : Colors.redAccent,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        widget.driver['full_name'] ?? 'Unknown',
+                        style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(width: 12),
-                      Switch(
-                        value: _isActive,
-                        activeColor: Colors.cyanAccent,
-                        onChanged: _toggleStatus,
+                      const SizedBox(height: 4),
+                      "Senior Driver".text.color(Colors.white54).make(),
+                      8.heightBox,
+                      Row(
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 18),
+                          const Icon(Icons.star, color: Colors.amber, size: 18),
+                          const Icon(Icons.star, color: Colors.amber, size: 18),
+                          const Icon(Icons.star, color: Colors.amber, size: 18),
+                          const Icon(Icons.star_half, color: Colors.amber, size: 18),
+                          8.widthBox,
+                          "4.8".text.color(Colors.white70).bold.make(),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    icon: const Icon(LucideIcons.history, size: 18),
-                    label: const Text('View Trip History'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.cyanAccent.withValues(alpha: 0.2),
-                      foregroundColor: Colors.cyanAccent,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+              ],
+            ),
+            24.heightBox,
+            
+            // Driver Meta Information
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    "Employee ID".text.color(Colors.white54).size(12).make(),
+                    Text(
+                      '${widget.driver['employee_id']}',
+                      style: const TextStyle(color: Colors.cyanAccent, fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DriverLogsScreen(
-                            adminViewDriverId: widget.driver['id'],
-                            adminViewDriverName: widget.driver['full_name'],
-                          ),
-                        ),
-                      );
-                    },
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white12),
                   ),
-                ],
+                  child: Text(
+                    clientName,
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                ),
+              ],
+            ),
+            24.heightBox,
+
+            // Status Toggle
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _isActive ? 'Status: Active' : 'Status: Inactive',
+                  style: TextStyle(
+                    color: _isActive ? Colors.cyanAccent : Colors.redAccent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Switch(
+                  value: _isActive,
+                  activeColor: Colors.cyanAccent,
+                  onChanged: _toggleStatus,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildMonthlyStatsCard(),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(LucideIcons.history, size: 18),
+                label: const Text('View Trip History'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.cyanAccent.withValues(alpha: 0.2),
+                  foregroundColor: Colors.cyanAccent,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DriverLogsScreen(
+                        adminViewDriverId: widget.driver['id'],
+                        adminViewDriverName: widget.driver['full_name'],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 40),
@@ -404,6 +461,192 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildMonthlyStatsCard() {
+    int totalKm = 0;
+    Duration totalDuration = Duration.zero;
+    double totalExpense = 0.0;
+    int daysWorked = 0;
+    Duration totalOvertime = Duration.zero;
+    
+    final driverId = widget.driver['id'] as String;
+    final now = DateTime.now();
+    final totalDaysInMonth = DateTime(now.year, now.month + 1, 0).day;
+    
+    final monthStart = DateTime(now.year, now.month, 1);
+    final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+    
+    // We try to get logs if they exist locally
+    final logs = ref.read(driverRepositoryProvider).getLogs(
+      driverId,
+      start: monthStart,
+      end: monthEnd,
+    );
+    
+    final Set<String> workedDays = {};
+    final Map<String, List<dynamic>> dailyLogsMap = {};
+    
+    for (var log in logs) {
+      final dateStr = DateFormat('yyyy-MM-dd').format(log.startTime);
+      workedDays.add(dateStr);
+      dailyLogsMap.putIfAbsent(dateStr, () => []).add(log);
+      
+      totalKm += (log.totalKm ?? 0);
+      
+      final expenses = ref.read(driverRepositoryProvider).getExpensesForLog(log.id);
+      for (var exp in expenses) {
+        final type = exp.expenseType.toLowerCase();
+        if (type == 'toll' || type == 'parking') {
+          totalExpense += exp.amount;
+        }
+      }
+
+      if (log.endTime != null) {
+        final diff = log.endTime!.difference(log.startTime);
+        totalDuration += diff;
+      }
+    }
+    daysWorked = workedDays.length;
+    
+    for (var dayLogs in dailyLogsMap.values) {
+      dayLogs.sort((a, b) => (a.startTime as DateTime).compareTo(b.startTime as DateTime));
+      final dutyStart = dayLogs.first.startTime as DateTime;
+      final logsWithEnd = dayLogs.where((l) => l.endTime != null).toList();
+      if (logsWithEnd.isNotEmpty) {
+        logsWithEnd.sort((a, b) => (a.endTime as DateTime).compareTo(b.endTime as DateTime));
+        final dutyEnd = logsWithEnd.last.endTime as DateTime;
+        final duration = dutyEnd.difference(dutyStart);
+        if (duration.inMinutes > 600) {
+          totalOvertime += Duration(minutes: duration.inMinutes - 600);
+        }
+      }
+    }
+    
+    final formatter = NumberFormat('#,##0');
+    final percent = totalDaysInMonth > 0 ? (daysWorked / totalDaysInMonth) : 0.0;
+    
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  "MONTHLY SUMMARY".text.color(Colors.white70).bold.letterSpacing(1).make(),
+                  DateFormat('MMM yyyy').format(now).text.color(Colors.white54).make(),
+                ],
+              ),
+              24.heightBox,
+              Row(
+                children: [
+                  // Days Worked Box
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              "Days Worked".text.color(Colors.white70).make(),
+                              8.heightBox,
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  daysWorked.toString().text.white.xl3.bold.make(),
+                                  4.widthBox,
+                                  "Days".text.white.bold.make(),
+                                ],
+                              ),
+                              "out of $totalDaysInMonth".text.color(Colors.white54).size(12).make(),
+                            ],
+                          ),
+                          CircularPercentIndicator(
+                            radius: 24,
+                            lineWidth: 5.0,
+                            percent: percent.clamp(0.0, 1.0),
+                            center: "${(percent * 100).toInt()}%".text.white.size(12).bold.make(),
+                            progressColor: Colors.cyanAccent,
+                            backgroundColor: Colors.white12,
+                            circularStrokeCap: CircularStrokeCap.round,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  16.widthBox,
+                  // Overtime Box
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.cyan.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.cyan.withValues(alpha: 0.2)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          "Total Overtime".text.color(Colors.cyanAccent).make(),
+                          8.heightBox,
+                          "${totalOvertime.inHours} hrs".text.white.xl3.bold.make(),
+                          "${totalOvertime.inMinutes.remainder(60)} mins".text.color(Colors.cyanAccent.withValues(alpha: 0.7)).size(12).make(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              24.heightBox,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildStatItem("Toll/Parking", formatter.format(totalExpense), "Tk"),
+                  _buildStatItem("Total Distance", formatter.format(totalKm), "km"),
+                  _buildStatItem("Total Hours", "${totalDuration.inHours}", "hrs"),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, String unit) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        label.text.color(Colors.white70).size(12).make(),
+        4.heightBox,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            value.text.white.xl2.bold.make(),
+            4.widthBox,
+            unit.text.color(Colors.white54).size(12).make(),
+          ],
+        ),
+      ],
     );
   }
 }

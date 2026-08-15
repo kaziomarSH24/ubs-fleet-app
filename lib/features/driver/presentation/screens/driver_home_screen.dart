@@ -458,23 +458,24 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     
     final authService = ref.read(authServiceProvider);
     final profile = authService.getLocalProfile();
+    final driverId = profile?.id;
+    if (driverId == null) return const SizedBox.shrink();
+
+    final now = DateTime.now();
+    final monthStart = DateTime(now.year, now.month, 1);
+    final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
     
-    if (profile != null) {
-      final now = DateTime.now();
-      final monthStart = DateTime(now.year, now.month, 1);
-      final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+    final logs = ref.read(driverRepositoryProvider).getLogs(
+      driverId,
+      start: monthStart,
+      end: monthEnd,
+    );
+    
+    for (var log in logs) {
+      totalKm += (log.totalKm ?? 0);
       
-      final logs = ref.read(driverRepositoryProvider).getLogs(
-        profile.id,
-        start: monthStart,
-        end: monthEnd,
-      );
-      
-      for (var log in logs) {
-        totalKm += (log.totalKm ?? 0);
-        if (log.endTime != null) {
-          totalDuration += log.endTime!.difference(log.startTime);
-        }
+      if (log.endTime != null) {
+        totalDuration += log.endTime!.difference(log.startTime);
       }
     }
     
