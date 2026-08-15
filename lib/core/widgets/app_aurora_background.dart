@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class AppAuroraBackground extends StatelessWidget {
@@ -29,14 +30,7 @@ class AppAuroraBackground extends StatelessWidget {
               height: 500,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF4A148C).withValues(alpha: 0.4),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF4A148C).withValues(alpha: 0.4),
-                    blurRadius: 200,
-                    spreadRadius: 100,
-                  )
-                ],
+                color: const Color(0xFF4A148C).withValues(alpha: 0.7),
               ),
             ),
           ),
@@ -50,14 +44,7 @@ class AppAuroraBackground extends StatelessWidget {
               height: 450,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF00E5FF).withValues(alpha: 0.3),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF00E5FF).withValues(alpha: 0.3),
-                    blurRadius: 200,
-                    spreadRadius: 100,
-                  )
-                ],
+                color: const Color(0xFF00E5FF).withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -74,15 +61,18 @@ class AppAuroraBackground extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.rectangle,
                   borderRadius: BorderRadius.circular(125),
-                  color: const Color(0xFFE20074).withValues(alpha: 0.25),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFE20074).withValues(alpha: 0.25),
-                      blurRadius: 250,
-                      spreadRadius: 120,
-                    )
-                  ],
+                  color: const Color(0xFFE20074).withValues(alpha: 0.5),
                 ),
+              ),
+            ),
+          ),
+
+          // The magical blur that turns shapes into smooth gradients
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 130.0, sigmaY: 130.0),
+              child: Container(
+                color: const Color(0xFF090514).withValues(alpha: 0.4), // Soft overlay to tone down the colors
               ),
             ),
           ),

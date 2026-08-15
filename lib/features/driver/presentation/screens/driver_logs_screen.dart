@@ -10,6 +10,7 @@ import '../../../../core/database/entities/daily_log_local.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/database/entities/daily_log_local.dart';
 import '../../../../core/database/entities/expense_local.dart';
+import '../../../../core/database/entities/profile_local.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../data/repositories/driver_repository.dart';
 import '../../data/repositories/profile_repository.dart';
@@ -17,7 +18,9 @@ import '../../../../core/widgets/app_snackbar.dart';
 import '../../domain/services/pdf_logbook_service.dart';
 
 class DriverLogsScreen extends ConsumerStatefulWidget {
-  const DriverLogsScreen({super.key});
+  final String? adminViewDriverId;
+  final String? adminViewDriverName;
+  const DriverLogsScreen({super.key, this.adminViewDriverId, this.adminViewDriverName});
 
   @override
   ConsumerState<DriverLogsScreen> createState() => _DriverLogsScreenState();
@@ -35,9 +38,9 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
   }
 
   Future<void> _syncExistingLogs() async {
-    final profile = ref.read(authServiceProvider).getLocalProfile();
-    if (profile != null) {
-      await ref.read(driverRepositoryProvider).syncDownData(profile.id);
+    final targetId = widget.adminViewDriverId ?? ref.read(authServiceProvider).getLocalProfile()?.id;
+    if (targetId != null) {
+      await ref.read(driverRepositoryProvider).syncDownData(targetId);
     }
   }
 
@@ -58,7 +61,10 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
               child: Icon(Icons.person, color: Colors.black, size: 20),
             ),
             12.widthBox,
-            (l10n?.tripHistory ?? "TRIP HISTORY").text.white.letterSpacing(1).bold.make(),
+            (widget.adminViewDriverName != null 
+                ? "${widget.adminViewDriverName}'s Logs" 
+                : (l10n?.tripHistory ?? "TRIP HISTORY"))
+            .text.white.letterSpacing(1).bold.make(),
           ],
         ),
         actions: [
@@ -139,15 +145,17 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
                   final authService = ref.read(authServiceProvider);
                   final profile = authService.getLocalProfile();
                   
-                  if (profile == null) {
-                    return const Center(child: Text("No driver logged in", style: TextStyle(color: Colors.white)));
+                  final targetId = widget.adminViewDriverId ?? profile?.id;
+                  
+                  if (targetId == null) {
+                    return const Center(child: Text("No driver selected", style: TextStyle(color: Colors.white)));
                   }
                   
                   final effectiveStart = _startDate ?? DateTime(_currentMonth.year, _currentMonth.month, 1);
                   final effectiveEnd = _endDate ?? DateTime(_currentMonth.year, _currentMonth.month + 1, 0, 23, 59, 59);
 
                   final logs = ref.read(driverRepositoryProvider).getLogs(
-                    profile.id,
+                    targetId,
                     start: effectiveStart,
                     end: effectiveEnd,
                   );
@@ -262,8 +270,22 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
   }
 
   Future<void> _exportToPdf(BuildContext context) async {
-    final profile = ref.read(authServiceProvider).getLocalProfile();
-    if (profile == null) return;
+    final targetId = widget.adminViewDriverId ?? ref.read(authServiceProvider).getLocalProfile()?.id;
+    if (targetId == null) return;
+    
+    ProfileLocal? targetProfile;
+    if (widget.adminViewDriverId != null) {
+      targetProfile = ProfileLocal(
+        id: widget.adminViewDriverId!,
+        fullName: widget.adminViewDriverName ?? 'Driver',
+        employeeId: 'N/A',
+        phoneNumber: 'N/A',
+        role: 'driver',
+      );
+    } else {
+      targetProfile = ref.read(authServiceProvider).getLocalProfile();
+    }
+    if (targetProfile == null) return;
     
     // We export the month currently visible in the UI
     final targetMonth = _currentMonth;
@@ -274,7 +296,7 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
     final endOfMonth = DateTime(targetMonth.year, targetMonth.month + 1, 0, 23, 59, 59);
 
     final logs = ref.read(driverRepositoryProvider).getLogs(
-      profile.id,
+      targetId,
       start: startOfMonth,
       end: endOfMonth,
     );
@@ -300,7 +322,7 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
     try {
       // Get the driver's vehicle (if assigned)
       final profileRepo = ref.read(profileRepositoryProvider);
-      vehicle = await profileRepo.getAssignedVehicle(profile.id);
+      vehicle = await profileRepo.getAssignedVehicle(targetId);
     } catch (e) {
       debugPrint("Error fetching vehicle: $e");
     } finally {
@@ -312,7 +334,7 @@ class _DriverLogsScreenState extends ConsumerState<DriverLogsScreen> {
     try {
       await PdfLogbookService.generateAndPrintMonthlyLogbook(
         monthYearStr: monthYearStr,
-        driver: profile,
+        driver: targetProfile,
         vehicle: vehicle,
         monthlyLogs: logs,
         logsExpenses: logsExpenses, 

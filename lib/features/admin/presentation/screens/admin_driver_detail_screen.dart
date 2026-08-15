@@ -11,6 +11,7 @@ import '../../../../core/widgets/app_aurora_background.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../providers/admin_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../driver/presentation/screens/driver_logs_screen.dart';
 
 class AdminDriverDetailScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> driver;
@@ -227,6 +228,29 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                         onChanged: _toggleStatus,
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    icon: const Icon(LucideIcons.history, size: 18),
+                    label: const Text('View Trip History'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.cyanAccent.withValues(alpha: 0.2),
+                      foregroundColor: Colors.cyanAccent,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DriverLogsScreen(
+                            adminViewDriverId: widget.driver['id'],
+                            adminViewDriverName: widget.driver['full_name'],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
