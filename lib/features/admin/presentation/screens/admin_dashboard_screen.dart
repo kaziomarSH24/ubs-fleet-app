@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:ui';
+import '../../../../core/widgets/app_aurora_background.dart';
 import '../providers/admin_providers.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -16,84 +17,9 @@ class AdminDashboardScreen extends ConsumerWidget {
     final statsAsync = ref.watch(dashboardStatsProvider);
     final logsAsync = ref.watch(recentLogsProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.black, // Fallback
-      body: Stack(
-        children: [
-          // 1. Rich Deep Gradient Background
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(0, -0.4),
-                  radius: 1.2,
-                  colors: [
-                    Color(0xFF0F172A), // Soft dark slate in center
-                    Color(0xFF020617), // Pure deep dark at edges
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // Background Dot Pattern for Glassmorphism
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _DotGridPainter(),
-            ),
-          ),
-          // Top Left Teal Glow
-          Positioned(
-            top: -50,
-            left: -100,
-            child: Container(
-              width: 350,
-              height: 350,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF19556A).withValues(alpha: 0.35),
-                boxShadow: [
-                  BoxShadow(color: const Color(0xFF19556A).withValues(alpha: 0.35), blurRadius: 120, spreadRadius: 60)
-                ]
-              ),
-            ),
-          ),
-          // Top Right Purple Glow
-          Positioned(
-            top: -100,
-            right: -50,
-            child: Container(
-              width: 350,
-              height: 350,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF5E2C96).withValues(alpha: 0.35),
-                boxShadow: [
-                  BoxShadow(color: const Color(0xFF5E2C96).withValues(alpha: 0.35), blurRadius: 120, spreadRadius: 60)
-                ]
-              ),
-            ),
-          ),
-          // Bottom Center Accent Glow
-          Positioned(
-            bottom: -150,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                width: 400,
-                height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFF00F2FE).withValues(alpha: 0.15),
-                  boxShadow: [
-                    BoxShadow(color: const Color(0xFF00F2FE).withValues(alpha: 0.15), blurRadius: 120, spreadRadius: 80)
-                  ]
-                ),
-              ),
-            ),
-          ),
-          RefreshIndicator(
-            color: Colors.cyanAccent,
+    return AppAuroraBackground(
+      child: RefreshIndicator(
+        color: Colors.cyanAccent,
         backgroundColor: const Color(0xFF171A24),
         onRefresh: () async {
           ref.invalidate(dashboardStatsProvider);
@@ -150,8 +76,6 @@ class AdminDashboardScreen extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-        ],
       ),
     );
   }
@@ -698,25 +622,4 @@ class _NeonCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _DotGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.03)
-      ..style = PaintingStyle.fill;
-
-    const double spacing = 20.0;
-    const double radius = 1.0;
-
-    for (double x = 0; x < size.width; x += spacing) {
-      for (double y = 0; y < size.height; y += spacing) {
-        canvas.drawCircle(Offset(x, y), radius, paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

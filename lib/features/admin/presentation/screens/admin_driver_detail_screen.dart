@@ -7,6 +7,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/app_aurora_background.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../providers/admin_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -164,72 +165,15 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
     final docsAsync = ref.watch(driverDocumentsProvider(widget.driver['id']));
     final clientName = widget.driver['clients'] != null ? widget.driver['clients']['name'] : 'No Company Assigned';
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+    return AppAuroraBackground(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text('Driver Profile', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Stack(
-        children: [
-          // Background Gradient
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(0, -0.4),
-                  radius: 1.2,
-                  colors: [
-                    Color(0xFF0F172A),
-                    Color(0xFF020617),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // Background Dot Pattern
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _DotGridPainter(),
-            ),
-          ),
-          // Top Left Teal Glow
-          Positioned(
-            top: -50,
-            left: -100,
-            child: Container(
-              width: 350,
-              height: 350,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF19556A).withValues(alpha: 0.35),
-                boxShadow: [
-                  BoxShadow(color: const Color(0xFF19556A).withValues(alpha: 0.35), blurRadius: 120, spreadRadius: 60)
-                ]
-              ),
-            ),
-          ),
-          // Bottom Right Purple Glow
-          Positioned(
-            bottom: -100,
-            right: -50,
-            child: Container(
-              width: 350,
-              height: 350,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF5E2C96).withValues(alpha: 0.35),
-                boxShadow: [
-                  BoxShadow(color: const Color(0xFF5E2C96).withValues(alpha: 0.35), blurRadius: 120, spreadRadius: 60)
-                ]
-              ),
-            ),
-          ),
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -436,30 +380,6 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
           ],
         ),
       ),
-      ),
-      ],
-      ),
     );
   }
-}
-
-class _DotGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.03)
-      ..style = PaintingStyle.fill;
-
-    const double spacing = 20.0;
-    const double radius = 1.0;
-
-    for (double x = 0; x < size.width; x += spacing) {
-      for (double y = 0; y < size.height; y += spacing) {
-        canvas.drawCircle(Offset(x, y), radius, paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
