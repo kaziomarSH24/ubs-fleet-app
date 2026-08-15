@@ -26,8 +26,49 @@ class AdminDriversScreen extends ConsumerWidget {
                 gradient: RadialGradient(
                   center: Alignment(0, -0.4),
                   radius: 1.2,
-                  colors: [Color(0xFF0F172A), Color(0xFF020617)],
+                  colors: [
+                    Color(0xFF0F172A),
+                    Color(0xFF020617),
+                  ],
                 ),
+              ),
+            ),
+          ),
+          // Background Dot Pattern
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _DotGridPainter(),
+            ),
+          ),
+          // Top Left Teal Glow
+          Positioned(
+            top: -50,
+            left: -100,
+            child: Container(
+              width: 350,
+              height: 350,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF19556A).withValues(alpha: 0.35),
+                boxShadow: [
+                  BoxShadow(color: const Color(0xFF19556A).withValues(alpha: 0.35), blurRadius: 120, spreadRadius: 60)
+                ]
+              ),
+            ),
+          ),
+          // Bottom Right Purple Glow
+          Positioned(
+            bottom: -100,
+            right: -50,
+            child: Container(
+              width: 350,
+              height: 350,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF5E2C96).withValues(alpha: 0.35),
+                boxShadow: [
+                  BoxShadow(color: const Color(0xFF5E2C96).withValues(alpha: 0.35), blurRadius: 120, spreadRadius: 60)
+                ]
               ),
             ),
           ),
@@ -201,4 +242,25 @@ class AdminDriversScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _DotGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.03)
+      ..style = PaintingStyle.fill;
+
+    const double spacing = 20.0;
+    const double radius = 1.0;
+
+    for (double x = 0; x < size.width; x += spacing) {
+      for (double y = 0; y < size.height; y += spacing) {
+        canvas.drawCircle(Offset(x, y), radius, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
