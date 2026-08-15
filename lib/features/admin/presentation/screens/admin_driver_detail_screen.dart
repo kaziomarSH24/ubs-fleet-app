@@ -436,6 +436,7 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
           ],
         ),
       ),
+      ),
       ],
       ),
     );
