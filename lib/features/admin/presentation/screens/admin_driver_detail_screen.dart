@@ -14,6 +14,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../driver/presentation/screens/driver_logs_screen.dart';
 import '../../../driver/data/repositories/driver_repository.dart';
 import '../../data/repositories/billing_repository.dart';
+import '../../domain/services/pdf_billing_slip_service.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'dart:ui';
@@ -497,13 +498,19 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
     
     final Set<String> workedDays = {};
     final Map<String, List<dynamic>> dailyLogsMap = {};
-    
+    int totalCngKm = 0;
+    int totalOctaneKm = 0;
+    int totalLpgKm = 0;
+
     for (var log in logs) {
       final dateStr = DateFormat('yyyy-MM-dd').format(log.startTime);
       workedDays.add(dateStr);
       dailyLogsMap.putIfAbsent(dateStr, () => []).add(log);
       
       totalKm += (log.totalKm ?? 0);
+      totalCngKm += (log.cngKm ?? 0);
+      totalOctaneKm += (log.octaneKm ?? 0);
+      totalLpgKm += (log.lpgKm ?? 0);
       
       final expenses = ref.read(driverRepositoryProvider).getExpensesForLog(log.id);
       for (var exp in expenses) {
@@ -618,7 +625,6 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                           "Total Overtime".text.color(Colors.cyanAccent).make(),
                           8.heightBox,
                           "${totalOvertime.inHours} hrs".text.white.xl3.bold.make(),
-                          "${totalOvertime.inMinutes.remainder(60)} mins".text.color(Colors.cyanAccent.withValues(alpha: 0.7)).size(12).make(),
                         ],
                       ),
                     ),
@@ -639,11 +645,21 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
+                    // Extract rent from vehicle if available
+                    final vehicleList = widget.driver['vehicles'] as List<dynamic>?;
+                    final defaultRent = (vehicleList != null && vehicleList.isNotEmpty) 
+                        ? (vehicleList[0]['rent_amount'] ?? 0.0) 
+                        : 0.0;
+                    
                     _showVerifyBillSheet(
                       context, 
                       driverId: widget.driver['id'], 
-                      claimedKm: totalKm, 
-                      claimedOvertimeMins: totalOvertime.inMinutes,
+                      vehicleRentAmount: defaultRent,
+                      claimedKm: totalKm,
+                      claimedCngKm: totalCngKm,
+                      claimedOctaneKm: totalOctaneKm,
+                      claimedLpgKm: totalLpgKm,
+                      claimedOvertimeHours: totalOvertime.inHours,
                       claimedDaysWorked: daysWorked,
                       claimedToll: totalExpense,
                       monthDate: now,
@@ -653,6 +669,38 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                   label: const Text('Verify & Generate Bill', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyanAccent,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              12.heightBox,
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    try {
+                      final monthStr = DateFormat('yyyy-MM').format(now);
+                      final existingBill = await ref.read(billingRepositoryProvider).getMonthlyBill(widget.driver['id'], monthStr);
+                      if (existingBill == null || existingBill.isEmpty) {
+                        if (mounted) AppSnackbar.showError(context, "No verified bill found for ${DateFormat('MMM yyyy').format(now)}");
+                        return;
+                      }
+                      
+                      await PdfBillingSlipService.generateAndPrintSlip(
+                        driverData: widget.driver,
+                        billData: existingBill,
+                      );
+                    } catch (e) {
+                      if (mounted) AppSnackbar.showError(context, "Failed to generate slip: $e");
+                    }
+                  },
+                  icon: const Icon(LucideIcons.download, size: 18, color: Colors.white),
+                  label: const Text('Download Driver Slip (PDF)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    side: const BorderSide(color: Colors.cyanAccent),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -687,8 +735,12 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
   void _showVerifyBillSheet(
     BuildContext context, {
     required String driverId,
+    required double vehicleRentAmount,
     required int claimedKm,
-    required int claimedOvertimeMins,
+    required int claimedCngKm,
+    required int claimedOctaneKm,
+    required int claimedLpgKm,
+    required int claimedOvertimeHours,
     required int claimedDaysWorked,
     required double claimedToll,
     required DateTime monthDate,
@@ -699,11 +751,15 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
       backgroundColor: Colors.transparent,
       builder: (ctx) => _VerifyBillSheet(
         driverId: driverId,
-        monthDate: monthDate,
+        vehicleRentAmount: vehicleRentAmount,
         claimedKm: claimedKm,
-        claimedOvertimeMins: claimedOvertimeMins,
+        claimedCngKm: claimedCngKm,
+        claimedOctaneKm: claimedOctaneKm,
+        claimedLpgKm: claimedLpgKm,
+        claimedOvertimeHours: claimedOvertimeHours,
         claimedDaysWorked: claimedDaysWorked,
         claimedToll: claimedToll,
+        monthDate: monthDate,
       ),
     );
   }
@@ -871,19 +927,27 @@ class _AdminBillingRatesCardState extends ConsumerState<_AdminBillingRatesCard> 
 
 class _VerifyBillSheet extends ConsumerStatefulWidget {
   final String driverId;
-  final DateTime monthDate;
+  final double vehicleRentAmount;
   final int claimedKm;
-  final int claimedOvertimeMins;
+  final int claimedCngKm;
+  final int claimedOctaneKm;
+  final int claimedLpgKm;
+  final int claimedOvertimeHours;
   final int claimedDaysWorked;
   final double claimedToll;
+  final DateTime monthDate;
 
   const _VerifyBillSheet({
     required this.driverId,
-    required this.monthDate,
+    required this.vehicleRentAmount,
     required this.claimedKm,
-    required this.claimedOvertimeMins,
+    required this.claimedCngKm,
+    required this.claimedOctaneKm,
+    required this.claimedLpgKm,
+    required this.claimedOvertimeHours,
     required this.claimedDaysWorked,
     required this.claimedToll,
+    required this.monthDate,
   });
 
   @override
@@ -904,20 +968,24 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
   late TextEditingController _tollCtrl;
   late TextEditingController _replaceDaysCtrl;
   late TextEditingController _absentDaysCtrl;
+  late TextEditingController _rentCtrl;
+  late TextEditingController _advanceCtrl;
 
   @override
   void initState() {
     super.initState();
     // Default values
-    _cngKmCtrl = TextEditingController(text: widget.claimedKm.toString());
-    _octaneKmCtrl = TextEditingController(text: "0");
-    _lpgKmCtrl = TextEditingController(text: "0");
-    _overtimeHrCtrl = TextEditingController(text: (widget.claimedOvertimeMins / 60.0).toStringAsFixed(1));
+    _cngKmCtrl = TextEditingController(text: widget.claimedCngKm.toString());
+    _octaneKmCtrl = TextEditingController(text: widget.claimedOctaneKm.toString());
+    _lpgKmCtrl = TextEditingController(text: widget.claimedLpgKm.toString());
+    _overtimeHrCtrl = TextEditingController(text: widget.claimedOvertimeHours.toString());
     _nightStayCtrl = TextEditingController(text: "0");
     _lunchDaysCtrl = TextEditingController(text: widget.claimedDaysWorked.toString());
     _tollCtrl = TextEditingController(text: widget.claimedToll.toString());
     _replaceDaysCtrl = TextEditingController(text: "0");
     _absentDaysCtrl = TextEditingController(text: "0");
+    _rentCtrl = TextEditingController(text: widget.vehicleRentAmount.toString());
+    _advanceCtrl = TextEditingController(text: "0");
     
     _loadData();
   }
@@ -941,6 +1009,8 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
             _tollCtrl.text = (existingBill['actual_toll_parking'] ?? 0).toString();
             _replaceDaysCtrl.text = (existingBill['actual_replace_days'] ?? 0).toString();
             _absentDaysCtrl.text = (existingBill['actual_absent_days'] ?? 0).toString();
+            _rentCtrl.text = (existingBill['vehicle_rent_amount'] ?? widget.vehicleRentAmount).toString();
+            _advanceCtrl.text = (existingBill['advance_amount'] ?? 0).toString();
           }
           _isLoading = false;
         });
@@ -963,10 +1033,13 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
     final toll = double.tryParse(_tollCtrl.text) ?? 0;
     final replaceDays = int.tryParse(_replaceDaysCtrl.text) ?? 0;
     final absentDays = int.tryParse(_absentDaysCtrl.text) ?? 0;
+    final rentAmount = double.tryParse(_rentCtrl.text) ?? 0;
+    final advanceAmount = double.tryParse(_advanceCtrl.text) ?? 0;
 
     final cngTotal = cngKm * (_rates['cng_rate_per_km'] ?? 0);
     final octaneTotal = octaneKm * (_rates['octane_rate_per_km'] ?? 0);
     final lpgTotal = lpgKm * (_rates['lpg_rate_per_km'] ?? 0);
+    // Overtime is in hours, rate is per hour.
     final otTotal = otHr * (_rates['overtime_rate_per_hour'] ?? 0);
     final nightTotal = nightStay * (_rates['night_stay_rate'] ?? 0);
     final lunchTotal = lunchDays * (_rates['lunch_rate_per_day'] ?? 0);
@@ -976,7 +1049,10 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
     // Absent is deducted
     final absentTotal = absentDays * (_rates['absent_day_rate'] ?? 0);
 
-    return cngTotal + octaneTotal + lpgTotal + otTotal + nightTotal + lunchTotal + toll + startingFuel + replaceTotal - absentTotal;
+    final fuelAllowancesTotal = cngTotal + octaneTotal + lpgTotal + otTotal + nightTotal + lunchTotal + toll + startingFuel;
+    final rentAdjustments = rentAmount - replaceTotal - absentTotal - advanceAmount;
+
+    return fuelAllowancesTotal + rentAdjustments;
   }
 
   Future<void> _saveBill() async {
@@ -990,7 +1066,7 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
         
         // Claimed
         'claimed_cng_km': widget.claimedKm, // Assuming all claimed were CNG for simplicity unless they split it
-        'claimed_overtime_hours': widget.claimedOvertimeMins / 60.0,
+        'claimed_overtime_hours': widget.claimedOvertimeHours,
         'claimed_working_days': widget.claimedDaysWorked,
         'claimed_toll_parking': widget.claimedToll,
         
@@ -1004,6 +1080,8 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
         'actual_toll_parking': double.tryParse(_tollCtrl.text) ?? 0,
         'actual_replace_days': int.tryParse(_replaceDaysCtrl.text) ?? 0,
         'actual_absent_days': int.tryParse(_absentDaysCtrl.text) ?? 0,
+        'vehicle_rent_amount': double.tryParse(_rentCtrl.text) ?? 0,
+        'advance_amount': double.tryParse(_advanceCtrl.text) ?? 0,
         
         // Rates snapshot
         'cng_rate': _rates['cng_rate_per_km'] ?? 0,
@@ -1030,7 +1108,7 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
-        AppSnackbar.showError(context, "Error saving bill");
+        AppSnackbar.showError(context, "Error saving bill: ${e.toString()}");
       }
     }
   }
@@ -1065,9 +1143,11 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final sheetHeight = MediaQuery.of(context).size.height * 0.85;
+
     if (_isLoading) {
       return Container(
-        height: 300,
+        height: sheetHeight,
         decoration: const BoxDecoration(color: Color(0xFF131621), borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
         child: const Center(child: CircularProgressIndicator(color: Colors.cyanAccent)),
       );
@@ -1120,7 +1200,7 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Claimed (App Data)', style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold)),
-                        Text('${widget.claimedKm}km | ${(widget.claimedOvertimeMins / 60).toStringAsFixed(1)}h | ${widget.claimedDaysWorked}d', 
+                        Text('${widget.claimedKm}km | ${widget.claimedOvertimeHours}h | ${widget.claimedDaysWorked}d', 
                           style: const TextStyle(color: Colors.white70, fontSize: 12),
                         ),
                       ],
@@ -1146,6 +1226,8 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
                   
                   _buildField('Replace Days (+Tk ${_rates['replace_day_rate']})', _replaceDaysCtrl, isInt: true),
                   _buildField('Absent Days (-Tk ${_rates['absent_day_rate']})', _absentDaysCtrl, isInt: true),
+                  _buildField('Vehicle Rent Amount', _rentCtrl),
+                  _buildField('Advance Amount (-Tk)', _advanceCtrl),
                   
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0, bottom: 24.0),
@@ -1181,6 +1263,7 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
                     backgroundColor: Colors.cyanAccent,
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    minimumSize: const Size(120, 48),
                   ),
                   child: _isSaving
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.black87, strokeWidth: 2))

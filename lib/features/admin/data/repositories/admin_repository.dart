@@ -8,7 +8,7 @@ class AdminRepository {
   Future<List<Map<String, dynamic>>> getAllDrivers({String? clientId}) async {
     var query = _supabase
         .from('profiles')
-        .select('*, clients(*)')
+        .select('*, clients(*), vehicles(*)')
         .eq('role', 'driver');
     
     if (clientId != null) {

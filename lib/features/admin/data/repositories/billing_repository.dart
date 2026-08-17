@@ -59,4 +59,35 @@ class BillingRepository {
       throw Exception('Failed to save monthly bill: $e');
     }
   }
+
+  /// Get all bills for a specific client and month
+  Future<List<Map<String, dynamic>>> getMonthlyBillsForClient(String clientId, String monthYear) async {
+    try {
+      final response = await _supabase
+          .from('profiles')
+          .select('*, vehicles(*), monthly_bills(*)')
+          .eq('role', 'driver')
+          .eq('client_id', clientId)
+          .eq('monthly_bills.month_year', monthYear);
+          
+      List<Map<String, dynamic>> results = [];
+      for (var profile in response) {
+        final bills = profile['monthly_bills'] as List<dynamic>? ?? [];
+        if (bills.isNotEmpty) {
+          final bill = bills.first; // Since we filtered by monthYear, there should be exactly one
+          final vehicleList = profile['vehicles'] as List<dynamic>? ?? [];
+          final vehicle = vehicleList.isNotEmpty ? vehicleList.first : {};
+          
+          results.add({
+            'driver': profile,
+            'vehicle': vehicle,
+            'bill': bill,
+          });
+        }
+      }
+      return results;
+    } catch (e) {
+      throw Exception('Failed to get monthly bills for client: $e');
+    }
+  }
 }
