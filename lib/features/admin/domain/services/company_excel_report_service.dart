@@ -10,11 +10,14 @@ class CompanyExcelReportService {
     required String monthYear, // Format "2026-08"
     required List<Map<String, dynamic>> billingDataList,
   }) async {
+    final String clientShort = companyName.isNotEmpty ? companyName : 'Client';
     final List<String> headers = [
-      'Sl', 'Code', 'Driver Name', 'V-no', 'F-Type', 'Rent (Tk.)', 'Duty Day',
-      'Log CNG (Km)', 'Final CNG', 'Replace CNG', 'Log LPG', 'Final LPG',
-      'Log Octane', 'Final Octane', 'Replace Oct', 'Log OT (Mins)', 'Final OT (Mins)',
-      'Night Stay', 'Toll/Parking', 'Replace Days', 'Absent Days', 'Advance (Tk.)'
+      'Sl', 'Code', 'Driver Name', 'Vehicle No', 'Fuel Type', 'Rent Amount', 'Duty Days',
+      'Driver Log CNG', '$clientShort Final CNG', 'Replace CNG KM', 
+      'Driver Log LPG', '$clientShort Final LPG',
+      'Driver Log Octane', '$clientShort Final Octane', 'Replace Octen KM', 
+      'Driver Claim OT', '$clientShort Final OT',
+      'Night Stay Days', 'Toll & Parking', 'Replace Days', 'Absent Days', 'Advance Amount'
     ];
     final List<List<dynamic>> rows = [];
     rows.add(headers);
