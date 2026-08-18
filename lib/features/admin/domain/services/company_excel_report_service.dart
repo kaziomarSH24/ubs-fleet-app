@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:share_plus/share_plus.dart';
-
 class CompanyExcelReportService {
   static Future<void> generateAndExport({
     required String companyName,
@@ -89,13 +89,28 @@ class CompanyExcelReportService {
     }
 
     final String csvStr = Csv(lineDelimiter: '\n').encode(rows);
-    final dir = await getApplicationDocumentsDirectory();
     final dateStr = DateFormat('MMMM_yyyy').format(DateTime.parse('$monthYear-01'));
-    final filePath = '${dir.path}/${companyName.replaceAll(' ', '_')}_Report_$dateStr.csv';
+    final defaultFileName = '${companyName.replaceAll(' ', '_')}_Report_$dateStr.csv';
     
-    final file = File(filePath);
-    await file.writeAsString(csvStr);
-
-    await Share.shareXFiles([XFile(filePath)], text: 'Monthly Billing Report for $companyName');
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      String? outputFile = await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Billing Report',
+        fileName: defaultFileName,
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+      );
+      
+      if (outputFile != null) {
+        final file = File(outputFile);
+        await file.writeAsString(csvStr);
+      }
+    } else {
+      final dir = await getApplicationDocumentsDirectory();
+      final filePath = '${dir.path}/$defaultFileName';
+      
+      final file = File(filePath);
+      await file.writeAsString(csvStr);
+      await Share.shareXFiles([XFile(filePath)], text: 'Monthly Billing Report for $companyName');
+    }
   }
 }
