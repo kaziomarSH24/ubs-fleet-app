@@ -1146,7 +1146,7 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
         'actual_night_stays': int.tryParse(_nightStayCtrl.text) ?? 0,
         'actual_working_days': int.tryParse(_lunchDaysCtrl.text) ?? 0,
         'actual_toll_parking': double.tryParse(_tollCtrl.text) ?? 0,
-        'starting_fuel': _startingFuelAdded,
+        'starting_fuel_added': _startingFuelAdded,
         'actual_replace_days': int.tryParse(_replaceDaysCtrl.text) ?? 0,
         'actual_absent_days': int.tryParse(_absentDaysCtrl.text) ?? 0,
         'vehicle_rent_amount': double.tryParse(_rentCtrl.text) ?? 0,
