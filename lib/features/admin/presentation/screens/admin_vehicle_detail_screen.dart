@@ -8,6 +8,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/widgets/app_aurora_background.dart';
 import '../../../../core/widgets/app_snackbar.dart';
+import '../../../../core/constants.dart';
 import '../providers/admin_providers.dart';
 
 class AdminVehicleDetailScreen extends ConsumerStatefulWidget {
@@ -40,6 +41,72 @@ class _AdminVehicleDetailScreenState extends ConsumerState<AdminVehicleDetailScr
       if (mounted) AppSnackbar.showSuccess(context, 'Vehicle status updated');
     } catch (e) {
       if (mounted) AppSnackbar.showError(context, 'Failed to update status: $e');
+    }
+  }
+
+  Future<void> _editFuelType() async {
+    String selectedFuel = widget.vehicle['fuel_type'] ?? 'Octane';
+    
+    final newFuel = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: AlertDialog(
+                backgroundColor: const Color(0xFF171A24).withValues(alpha: 0.6),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                ),
+                title: const Text('Edit Fuel Type', style: TextStyle(color: Colors.white)),
+                content: DropdownButtonFormField<String>(
+                  value: selectedFuel,
+                  dropdownColor: const Color(0xFF171A24),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'Fuel Type',
+                    labelStyle: TextStyle(color: Colors.white54),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  ),
+                  items: AppConstants.fuelTypes
+                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                      .toList(),
+                  onChanged: (val) {
+                    if (val != null) setDialogState(() => selectedFuel = val);
+                  },
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, selectedFuel),
+                    child: const Text('Save', style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (newFuel != null && newFuel != widget.vehicle['fuel_type']) {
+      try {
+        await ref.read(adminRepositoryProvider).updateVehicleFuelType(widget.vehicle['id'], newFuel);
+        // We modify the local widget data since we don't have a stream for a single vehicle here (or we do invalidate)
+        setState(() {
+          widget.vehicle['fuel_type'] = newFuel;
+        });
+        ref.invalidate(vehiclesProvider);
+        if (mounted) AppSnackbar.showSuccess(context, 'Fuel type updated to $newFuel');
+      } catch (e) {
+        if (mounted) AppSnackbar.showError(context, 'Failed to update fuel type: $e');
+      }
     }
   }
 
@@ -384,6 +451,14 @@ class _AdminVehicleDetailScreenState extends ConsumerState<AdminVehicleDetailScr
               const Icon(LucideIcons.fuel, color: Colors.white54, size: 16),
               const SizedBox(width: 8),
               Text(widget.vehicle['fuel_type'] ?? 'N/A', style: const TextStyle(color: Colors.white70, fontSize: 16)),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(LucideIcons.pencil, color: Colors.cyanAccent, size: 16),
+                onPressed: _editFuelType,
+                tooltip: 'Edit Fuel Type',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
             ],
           ),
         ],

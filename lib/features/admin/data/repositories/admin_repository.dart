@@ -153,6 +153,17 @@ class AdminRepository {
     }
   }
 
+  Future<void> updateVehicleFuelType(String vehicleId, String fuelType) async {
+    try {
+      await _supabase
+          .from('vehicles')
+          .update({'fuel_type': fuelType})
+          .eq('id', vehicleId);
+    } catch (e) {
+      throw Exception('Failed to update vehicle fuel type: $e');
+    }
+  }
+
   /// Assign driver to vehicle
   Future<void> assignDriverToVehicle(String vehicleId, String? driverId) async {
     try {

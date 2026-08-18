@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_snackbar.dart';
+import '../../../../core/constants.dart';
 import '../providers/admin_providers.dart';
 
 class AddVehicleDialog extends ConsumerStatefulWidget {
@@ -153,7 +154,7 @@ class _AddVehicleDialogState extends ConsumerState<AddVehicleDialog> {
                 labelStyle: TextStyle(color: Colors.white54),
                 enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
               ),
-              items: ['Octane', 'CNG', 'LPG', 'Diesel', 'Hybrid', 'Electric']
+              items: AppConstants.fuelTypes
                   .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                   .toList(),
               onChanged: (v) => setState(() => _fuelType = v!),

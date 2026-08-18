@@ -579,22 +579,24 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              "Days Worked".text.color(Colors.white70).make(),
-                              8.heightBox,
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.baseline,
-                                textBaseline: TextBaseline.alphabetic,
-                                children: [
-                                  daysWorked.toString().text.white.xl3.bold.make(),
-                                  4.widthBox,
-                                  "Days".text.white.bold.make(),
-                                ],
-                              ),
-                              "out of $totalDaysInMonth".text.color(Colors.white54).size(12).make(),
-                            ],
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                "Days Worked".text.color(Colors.white70).make(),
+                                8.heightBox,
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                                  textBaseline: TextBaseline.alphabetic,
+                                  children: [
+                                    daysWorked.toString().text.white.xl3.bold.make(),
+                                    4.widthBox,
+                                    "Days".text.white.bold.make(),
+                                  ],
+                                ),
+                                "out of $totalDaysInMonth".text.color(Colors.white54).size(12).make(),
+                              ],
+                            ),
                           ),
                           CircularPercentIndicator(
                             radius: 24,
@@ -648,13 +650,17 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                     // Extract rent from vehicle if available
                     final vehicleList = widget.driver['vehicles'] as List<dynamic>?;
                     final defaultRent = (vehicleList != null && vehicleList.isNotEmpty) 
-                        ? (vehicleList[0]['rent_amount'] ?? 0.0) 
+                        ? ((vehicleList[0]['rent_amount'] ?? 0.0) as num).toDouble()
                         : 0.0;
+                    final fuelType = (vehicleList != null && vehicleList.isNotEmpty) 
+                        ? (vehicleList[0]['fuel_type'] ?? 'Unknown')
+                        : 'Unknown';
                     
                     _showVerifyBillSheet(
                       context, 
                       driverId: widget.driver['id'], 
                       vehicleRentAmount: defaultRent,
+                      vehicleFuelType: fuelType.toString(),
                       claimedKm: totalKm,
                       claimedCngKm: totalCngKm,
                       claimedOctaneKm: totalOctaneKm,
@@ -736,6 +742,7 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
     BuildContext context, {
     required String driverId,
     required double vehicleRentAmount,
+    required String vehicleFuelType,
     required int claimedKm,
     required int claimedCngKm,
     required int claimedOctaneKm,
@@ -752,6 +759,7 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
       builder: (ctx) => _VerifyBillSheet(
         driverId: driverId,
         vehicleRentAmount: vehicleRentAmount,
+        vehicleFuelType: vehicleFuelType,
         claimedKm: claimedKm,
         claimedCngKm: claimedCngKm,
         claimedOctaneKm: claimedOctaneKm,
@@ -928,6 +936,7 @@ class _AdminBillingRatesCardState extends ConsumerState<_AdminBillingRatesCard> 
 class _VerifyBillSheet extends ConsumerStatefulWidget {
   final String driverId;
   final double vehicleRentAmount;
+  final String vehicleFuelType;
   final int claimedKm;
   final int claimedCngKm;
   final int claimedOctaneKm;
@@ -940,6 +949,7 @@ class _VerifyBillSheet extends ConsumerStatefulWidget {
   const _VerifyBillSheet({
     required this.driverId,
     required this.vehicleRentAmount,
+    required this.vehicleFuelType,
     required this.claimedKm,
     required this.claimedCngKm,
     required this.claimedOctaneKm,
@@ -970,21 +980,35 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
   late TextEditingController _absentDaysCtrl;
   late TextEditingController _rentCtrl;
   late TextEditingController _advanceCtrl;
+  
+  bool _startingFuelAdded = false;
+  bool _rentBillAdded = false;
 
   @override
   void initState() {
     super.initState();
     // Default values
-    _cngKmCtrl = TextEditingController(text: widget.claimedCngKm.toString());
+    int cng = widget.claimedCngKm;
+    int lpg = widget.claimedLpgKm;
+    if (widget.vehicleFuelType.toLowerCase() == 'lpg') {
+      lpg += cng;
+      cng = 0;
+    } else if (widget.vehicleFuelType.toLowerCase() == 'cng') {
+      cng += lpg;
+      lpg = 0;
+    }
+    
+    _cngKmCtrl = TextEditingController(text: cng.toString());
     _octaneKmCtrl = TextEditingController(text: widget.claimedOctaneKm.toString());
-    _lpgKmCtrl = TextEditingController(text: widget.claimedLpgKm.toString());
+    _lpgKmCtrl = TextEditingController(text: lpg.toString());
     _overtimeHrCtrl = TextEditingController(text: widget.claimedOvertimeHours.toString());
     _nightStayCtrl = TextEditingController(text: "0");
     _lunchDaysCtrl = TextEditingController(text: widget.claimedDaysWorked.toString());
     _tollCtrl = TextEditingController(text: widget.claimedToll.toString());
     _replaceDaysCtrl = TextEditingController(text: "0");
     _absentDaysCtrl = TextEditingController(text: "0");
-    _rentCtrl = TextEditingController(text: widget.vehicleRentAmount.toString());
+    _rentBillAdded = widget.vehicleRentAmount > 0;
+    _rentCtrl = TextEditingController(text: _rentBillAdded ? widget.vehicleRentAmount.toString() : "0");
     _advanceCtrl = TextEditingController(text: "0");
     
     _loadData();
@@ -1000,17 +1024,38 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
         setState(() {
           _rates = rates;
           if (existingBill != null) {
-            _cngKmCtrl.text = (existingBill['actual_cng_km'] ?? 0).toString();
+            int cng = existingBill['actual_cng_km'] ?? 0;
+            int lpg = existingBill['actual_lpg_km'] ?? 0;
+
+            if (widget.vehicleFuelType.toLowerCase() == 'lpg') {
+              lpg += cng;
+              cng = 0;
+            } else if (widget.vehicleFuelType.toLowerCase() == 'cng') {
+              cng += lpg;
+              lpg = 0;
+            }
+
+            _cngKmCtrl.text = cng.toString();
             _octaneKmCtrl.text = (existingBill['actual_octane_km'] ?? 0).toString();
-            _lpgKmCtrl.text = (existingBill['actual_lpg_km'] ?? 0).toString();
-            _overtimeHrCtrl.text = (existingBill['actual_overtime_hours'] ?? 0).toString();
+            _lpgKmCtrl.text = lpg.toString();
+            _overtimeHrCtrl.text = (existingBill['actual_overtime_mins'] ?? 0).toString();
             _nightStayCtrl.text = (existingBill['actual_night_stays'] ?? 0).toString();
-            _lunchDaysCtrl.text = (existingBill['actual_working_days'] ?? 0).toString();
-            _tollCtrl.text = (existingBill['actual_toll_parking'] ?? 0).toString();
-            _replaceDaysCtrl.text = (existingBill['actual_replace_days'] ?? 0).toString();
-            _absentDaysCtrl.text = (existingBill['actual_absent_days'] ?? 0).toString();
-            _rentCtrl.text = (existingBill['vehicle_rent_amount'] ?? widget.vehicleRentAmount).toString();
+            _lunchDaysCtrl.text = (existingBill['actual_days_worked'] ?? 0).toString();
+            _tollCtrl.text = (existingBill['actual_tolls_parking'] ?? 0).toString();
+            _replaceDaysCtrl.text = (existingBill['replace_days'] ?? 0).toString();
+            _absentDaysCtrl.text = (existingBill['absent_days'] ?? 0).toString();
+            
+            final existingRent = existingBill['vehicle_rent_amount'] ?? 0;
+            if (existingRent > 0) {
+              _rentBillAdded = true;
+              _rentCtrl.text = existingRent.toString();
+            } else {
+              _rentBillAdded = false;
+              _rentCtrl.text = "0";
+            }
+            
             _advanceCtrl.text = (existingBill['advance_amount'] ?? 0).toString();
+            _startingFuelAdded = existingBill['starting_fuel_added'] == true;
           }
           _isLoading = false;
         });
@@ -1023,37 +1068,30 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
     }
   }
 
-  double get _totalBill {
-    final cngKm = double.tryParse(_cngKmCtrl.text) ?? 0;
-    final octaneKm = double.tryParse(_octaneKmCtrl.text) ?? 0;
-    final lpgKm = double.tryParse(_lpgKmCtrl.text) ?? 0;
-    final otHr = double.tryParse(_overtimeHrCtrl.text) ?? 0;
-    final nightStay = int.tryParse(_nightStayCtrl.text) ?? 0;
-    final lunchDays = int.tryParse(_lunchDaysCtrl.text) ?? 0;
-    final toll = double.tryParse(_tollCtrl.text) ?? 0;
-    final replaceDays = int.tryParse(_replaceDaysCtrl.text) ?? 0;
-    final absentDays = int.tryParse(_absentDaysCtrl.text) ?? 0;
-    final rentAmount = double.tryParse(_rentCtrl.text) ?? 0;
-    final advanceAmount = double.tryParse(_advanceCtrl.text) ?? 0;
+  double get _cngTotal => ((double.tryParse(_cngKmCtrl.text) ?? 0) * (_rates['cng_rate_per_km'] ?? 0)).toDouble();
+  double get _octaneTotal => ((double.tryParse(_octaneKmCtrl.text) ?? 0) * (_rates['octane_rate_per_km'] ?? 0)).toDouble();
+  double get _lpgTotal => ((double.tryParse(_lpgKmCtrl.text) ?? 0) * (_rates['lpg_rate_per_km'] ?? 0)).toDouble();
+  double get _startingFuelTotal => _startingFuelAdded ? (_rates['starting_fuel_rate'] ?? 0).toDouble() : 0.0;
+  
+  double get _totalFuelBill => _cngTotal + _octaneTotal + _lpgTotal + _startingFuelTotal;
 
-    final cngTotal = cngKm * (_rates['cng_rate_per_km'] ?? 0);
-    final octaneTotal = octaneKm * (_rates['octane_rate_per_km'] ?? 0);
-    final lpgTotal = lpgKm * (_rates['lpg_rate_per_km'] ?? 0);
-    // Overtime is in hours, rate is per hour.
-    final otTotal = otHr * (_rates['overtime_rate_per_hour'] ?? 0);
-    final nightTotal = nightStay * (_rates['night_stay_rate'] ?? 0);
-    final lunchTotal = lunchDays * (_rates['lunch_rate_per_day'] ?? 0);
-    final startingFuel = (_rates['starting_fuel_rate'] ?? 0); // Usually added once
-    final replaceTotal = replaceDays * (_rates['replace_day_rate'] ?? 0);
-    
-    // Absent is deducted
-    final absentTotal = absentDays * (_rates['absent_day_rate'] ?? 0);
+  double get _otTotal => ((double.tryParse(_overtimeHrCtrl.text) ?? 0) * (_rates['overtime_rate_per_hour'] ?? 0)).toDouble();
+  double get _nightTotal => ((int.tryParse(_nightStayCtrl.text) ?? 0) * (_rates['night_stay_rate'] ?? 0)).toDouble();
+  double get _lunchTotal => ((int.tryParse(_lunchDaysCtrl.text) ?? 0) * (_rates['lunch_rate_per_day'] ?? 0)).toDouble();
+  double get _tollTotal => double.tryParse(_tollCtrl.text) ?? 0;
+  
+  double get _totalAllowances => _otTotal + _nightTotal + _lunchTotal + _tollTotal;
 
-    final fuelAllowancesTotal = cngTotal + octaneTotal + lpgTotal + otTotal + nightTotal + lunchTotal + toll + startingFuel;
-    final rentAdjustments = rentAmount - replaceTotal - absentTotal - advanceAmount;
+  double get _driverTotal => _totalFuelBill + _totalAllowances - _advanceDeduction;
 
-    return fuelAllowancesTotal + rentAdjustments;
-  }
+  double get _rentBill => double.tryParse(_rentCtrl.text) ?? 0;
+  double get _replaceDeduction => ((int.tryParse(_replaceDaysCtrl.text) ?? 0) * (_rates['replace_day_rate'] ?? 0)).toDouble();
+  double get _absentDeduction => ((int.tryParse(_absentDaysCtrl.text) ?? 0) * (_rates['absent_day_rate'] ?? 0)).toDouble();
+  double get _advanceDeduction => double.tryParse(_advanceCtrl.text) ?? 0;
+
+  double get _adjustmentsSubtotal => _rentBill - _replaceDeduction - _absentDeduction;
+
+  double get _finalPayableAmount => _driverTotal + _adjustmentsSubtotal;
 
   Future<void> _saveBill() async {
     setState(() => _isSaving = true);
@@ -1065,36 +1103,26 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
         'month_year': monthStr,
         
         // Claimed
-        'claimed_cng_km': widget.claimedKm, // Assuming all claimed were CNG for simplicity unless they split it
-        'claimed_overtime_hours': widget.claimedOvertimeHours,
-        'claimed_working_days': widget.claimedDaysWorked,
-        'claimed_toll_parking': widget.claimedToll,
+        'claimed_total_km': widget.claimedKm, 
+        'claimed_overtime_mins': widget.claimedOvertimeHours,
+        'claimed_days_worked': widget.claimedDaysWorked,
+        'claimed_tolls_parking': widget.claimedToll,
         
         // Actual
-        'actual_cng_km': double.tryParse(_cngKmCtrl.text) ?? 0,
-        'actual_octane_km': double.tryParse(_octaneKmCtrl.text) ?? 0,
-        'actual_lpg_km': double.tryParse(_lpgKmCtrl.text) ?? 0,
-        'actual_overtime_hours': double.tryParse(_overtimeHrCtrl.text) ?? 0,
+        'actual_cng_km': (double.tryParse(_cngKmCtrl.text) ?? 0).toInt(),
+        'actual_octane_km': (double.tryParse(_octaneKmCtrl.text) ?? 0).toInt(),
+        'actual_lpg_km': (double.tryParse(_lpgKmCtrl.text) ?? 0).toInt(),
+        'actual_overtime_mins': (double.tryParse(_overtimeHrCtrl.text) ?? 0).toInt(),
         'actual_night_stays': int.tryParse(_nightStayCtrl.text) ?? 0,
-        'actual_working_days': int.tryParse(_lunchDaysCtrl.text) ?? 0,
-        'actual_toll_parking': double.tryParse(_tollCtrl.text) ?? 0,
-        'actual_replace_days': int.tryParse(_replaceDaysCtrl.text) ?? 0,
-        'actual_absent_days': int.tryParse(_absentDaysCtrl.text) ?? 0,
+        'actual_days_worked': int.tryParse(_lunchDaysCtrl.text) ?? 0,
+        'actual_tolls_parking': double.tryParse(_tollCtrl.text) ?? 0,
+        'starting_fuel_added': _startingFuelAdded,
+        'replace_days': int.tryParse(_replaceDaysCtrl.text) ?? 0,
+        'absent_days': int.tryParse(_absentDaysCtrl.text) ?? 0,
         'vehicle_rent_amount': double.tryParse(_rentCtrl.text) ?? 0,
         'advance_amount': double.tryParse(_advanceCtrl.text) ?? 0,
         
-        // Rates snapshot
-        'cng_rate': _rates['cng_rate_per_km'] ?? 0,
-        'octane_rate': _rates['octane_rate_per_km'] ?? 0,
-        'lpg_rate': _rates['lpg_rate_per_km'] ?? 0,
-        'overtime_rate': _rates['overtime_rate_per_hour'] ?? 0,
-        'night_stay_rate': _rates['night_stay_rate'] ?? 0,
-        'lunch_rate': _rates['lunch_rate_per_day'] ?? 0,
-        'starting_fuel': _rates['starting_fuel_rate'] ?? 0,
-        'replace_day_rate': _rates['replace_day_rate'] ?? 0,
-        'absent_day_rate': _rates['absent_day_rate'] ?? 0,
-        
-        'total_bill_amount': _totalBill,
+        'total_bill_amount': _finalPayableAmount,
         'status': 'Verified',
         'updated_at': DateTime.now().toIso8601String(),
       };
@@ -1113,27 +1141,47 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
     }
   }
 
-  Widget _buildField(String label, TextEditingController ctrl, {bool isInt = false}) {
+  Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(top: 24, bottom: 16),
+      child: Text(
+        title.toUpperCase(),
+        style: const TextStyle(color: Colors.white, fontSize: 13, letterSpacing: 1.2, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildFieldRow(String label, TextEditingController ctrl, double amount, {bool isInt = false, bool isDeduction = false}) {
+    final formatter = NumberFormat('#,##0.00');
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13))),
+          Expanded(flex: 3, child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13))),
           Expanded(
-            flex: 1,
+            flex: 2,
             child: TextField(
               controller: ctrl,
               keyboardType: TextInputType.numberWithOptions(decimal: !isInt),
               style: const TextStyle(color: Colors.white, fontSize: 14),
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.center,
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                 filled: true,
-                fillColor: Colors.white12,
-                border: OutlineInputBorder(borderSide: BorderSide.none),
+                fillColor: Colors.white.withValues(alpha: 0.05),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
               ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: Text(
+              '${isDeduction ? '-' : ''}Tk ${formatter.format(amount)}',
+              textAlign: TextAlign.right,
+              style: TextStyle(color: isDeduction ? Colors.redAccent : Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -1141,9 +1189,123 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
     );
   }
 
+  Widget _buildRentRow() {
+    final formatter = NumberFormat('#,##0.00');
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3, 
+            child: Row(
+              children: [
+                const Text('Rent Bill (+)', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                const Spacer(),
+                Transform.scale(
+                  scale: 0.7,
+                  child: Switch(
+                    value: _rentBillAdded,
+                    onChanged: (val) {
+                      setState(() {
+                        _rentBillAdded = val;
+                        if (val) {
+                          _rentCtrl.text = widget.vehicleRentAmount.toString();
+                        } else {
+                          _rentCtrl.text = "0";
+                        }
+                      });
+                    },
+                    activeColor: Colors.cyanAccent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: TextField(
+              controller: _rentCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+              textAlign: TextAlign.center,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.05),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Tk ${formatter.format(_rentBill)}',
+              textAlign: TextAlign.right,
+              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitchRow(String label, bool value, ValueChanged<bool>? onChanged, double amount) {
+    final formatter = NumberFormat('#,##0.00');
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Expanded(flex: 3, child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13))),
+          Expanded(
+            flex: 2,
+            child: Align(
+              alignment: Alignment.center,
+              child: Switch(
+                value: value,
+                onChanged: onChanged,
+                activeColor: Colors.cyanAccent,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Tk ${formatter.format(amount)}',
+              textAlign: TextAlign.right,
+              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubtotal(String label, double amount) {
+    final formatter = NumberFormat('#,##0.00');
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      margin: const EdgeInsets.only(top: 8, bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+          Text('Tk ${formatter.format(amount)}', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final sheetHeight = MediaQuery.of(context).size.height * 0.85;
+    final sheetHeight = MediaQuery.of(context).size.height * 0.90;
 
     if (_isLoading) {
       return Container(
@@ -1156,7 +1318,7 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
     final formatter = NumberFormat('#,##0.00');
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
+      height: sheetHeight,
       decoration: const BoxDecoration(
         color: Color(0xFF131621),
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -1174,7 +1336,7 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Verify Monthly Bill', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Text('DRIVER MONTHLY BILL SLIP', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                     Text(DateFormat('MMMM yyyy').format(widget.monthDate), style: const TextStyle(color: Colors.white54, fontSize: 13)),
                   ],
                 ),
@@ -1189,6 +1351,7 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // App Data Claimed
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -1206,43 +1369,81 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
                   
-                  const Text('ACTUAL VERIFIED DATA', style: TextStyle(color: Colors.white54, fontSize: 12, letterSpacing: 1, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
+                  // Section 1: Fuel Bill
+                  _buildSectionHeader('1. Fuel Bill Calculation'),
                   
-                  _buildField('CNG KM (Tk ${_rates['cng_rate_per_km']}/km)', _cngKmCtrl),
-                  _buildField('Octane KM (Tk ${_rates['octane_rate_per_km']}/km)', _octaneKmCtrl),
-                  _buildField('LPG KM (Tk ${_rates['lpg_rate_per_km']}/km)', _lpgKmCtrl),
-                  _buildField('Overtime Hours (Tk ${_rates['overtime_rate_per_hour']}/h)', _overtimeHrCtrl),
-                  _buildField('Working Days (Tk ${_rates['lunch_rate_per_day']}/day)', _lunchDaysCtrl, isInt: true),
-                  _buildField('Night Stays (Tk ${_rates['night_stay_rate']})', _nightStayCtrl, isInt: true),
-                  _buildField('Toll & Parking', _tollCtrl),
+                  if (widget.vehicleFuelType.toLowerCase().contains('cng'))
+                    _buildFieldRow('CNG (Tk ${_rates['cng_rate_per_km']}/km)', _cngKmCtrl, _cngTotal),
                   
-                  const Divider(color: Colors.white12, height: 32),
+                  if (widget.vehicleFuelType.toLowerCase().contains('octane') || 
+                      widget.vehicleFuelType.toLowerCase().contains('lpg') || 
+                      widget.vehicleFuelType.toLowerCase().contains('cng'))
+                    _buildFieldRow('Octane (Tk ${_rates['octane_rate_per_km']}/km)', _octaneKmCtrl, _octaneTotal),
                   
-                  const Text('DEDUCTIONS & ADDITIONS', style: TextStyle(color: Colors.white54, fontSize: 12, letterSpacing: 1, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
+                  if (widget.vehicleFuelType.toLowerCase().contains('lpg'))
+                    _buildFieldRow('LPG (Tk ${_rates['lpg_rate_per_km']}/km)', _lpgKmCtrl, _lpgTotal),
                   
-                  _buildField('Replace Days (+Tk ${_rates['replace_day_rate']})', _replaceDaysCtrl, isInt: true),
-                  _buildField('Absent Days (-Tk ${_rates['absent_day_rate']})', _absentDaysCtrl, isInt: true),
-                  _buildField('Vehicle Rent Amount', _rentCtrl),
-                  _buildField('Advance Amount (-Tk)', _advanceCtrl),
-                  
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0, bottom: 24.0),
-                    child: Text('Starting Fuel (+Tk ${_rates['starting_fuel_rate']}) is automatically added.', style: const TextStyle(color: Colors.white30, fontSize: 11)),
+                  _buildSwitchRow(
+                    'Starting Fuel (Tk ${_rates['starting_fuel_rate']})', 
+                    _startingFuelAdded, 
+                    widget.vehicleFuelType.toLowerCase() == 'octane' ? null : (val) => setState(() => _startingFuelAdded = val), 
+                    _startingFuelTotal
                   ),
+                  _buildSubtotal('Total Fuel Bill', _totalFuelBill),
+
+                  // Section 2: Allowances
+                  _buildSectionHeader('2. Allowances & Others'),
+                  _buildFieldRow('Overtime (Tk ${_rates['overtime_rate_per_hour']}/h)', _overtimeHrCtrl, _otTotal),
+                  _buildFieldRow('Night Stay (Tk ${_rates['night_stay_rate']})', _nightStayCtrl, _nightTotal, isInt: true),
+                  _buildFieldRow('Day Meal / Lunch (Tk ${_rates['lunch_rate_per_day']})', _lunchDaysCtrl, _lunchTotal, isInt: true),
+                  _buildFieldRow('Toll & Parking', _tollCtrl, _tollTotal),
+                  _buildSubtotal('Total Allowances', _totalAllowances),
+                  
+                  _buildFieldRow('Advance Amount / Fuel (-)', _advanceCtrl, _advanceDeduction, isDeduction: true),
+
+                  // Driver Total
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.cyan.withValues(alpha: 0.1),
+                      border: Border.all(color: Colors.cyan.withValues(alpha: 0.3)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'NET DRIVER PAY', 
+                            style: TextStyle(color: Colors.cyanAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Text('Tk ${formatter.format(_driverTotal)}', style: const TextStyle(color: Colors.cyanAccent, fontSize: 14, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+
+                  // Section 3: Adjustments
+                  _buildSectionHeader('3. Rent & Absent Adjustments'),
+                  _buildRentRow(),
+                  _buildFieldRow('Replace Deduction (-)', _replaceDaysCtrl, _replaceDeduction, isInt: true, isDeduction: true),
+                  _buildFieldRow('Absent Deduction (-)', _absentDaysCtrl, _absentDeduction, isInt: true, isDeduction: true),
+                  _buildSubtotal('Adjustments Subtotal', _adjustmentsSubtotal),
+                  
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
           ),
           
+          // Bottom Bar
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E2336),
-              border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+              color: Colors.green.withValues(alpha: 0.15),
+              border: Border(top: BorderSide(color: Colors.green.withValues(alpha: 0.3))),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1250,24 +1451,25 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Total Bill', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    const Text('FINAL PAYABLE AMOUNT', style: TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold)),
                     Text(
-                      'Tk ${formatter.format(_totalBill)}',
-                      style: const TextStyle(color: Colors.cyanAccent, fontSize: 24, fontWeight: FontWeight.bold),
+                      'Tk ${formatter.format(_finalPayableAmount)}',
+                      style: const TextStyle(color: Colors.greenAccent, fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
                 ElevatedButton(
                   onPressed: _isSaving ? null : _saveBill,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.cyanAccent,
+                    backgroundColor: Colors.greenAccent,
+                    foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     minimumSize: const Size(120, 48),
                   ),
                   child: _isSaving
                       ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.black87, strokeWidth: 2))
-                      : const Text('Verify & Save', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+                      : const Text('Verify & Save', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
