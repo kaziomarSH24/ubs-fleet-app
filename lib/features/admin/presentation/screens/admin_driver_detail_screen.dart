@@ -570,19 +570,15 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
     final formatter = NumberFormat('#,##0');
     final percent = totalDaysInMonth > 0 ? (daysWorked / totalDaysInMonth) : 0.0;
     
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.03),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3), width: 1.2),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3), width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -745,9 +741,7 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
               ),
             ],
           ),
-        ),
-      ),
-    );
+        );
   }
 
   Widget _buildStatItem(String label, String value, String unit) {
