@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../data/repositories/driver_repository.dart';
+import '../../admin/domain/services/pdf_billing_slip_service.dart';
 
 final myPaymentsProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, driverId) async {
   final repo = ref.read(driverRepositoryProvider);
@@ -376,6 +377,46 @@ class _DriverWalletScreenState extends ConsumerState<DriverWalletScreen> {
                   "৳ ${formatter.format(netPayable > 0 ? netPayable : 0)}".text.color(Colors.greenAccent).bold.xl.make(),
                 ],
               ),
+              if (isVerified) ...[
+                const Divider(color: Colors.white10, height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      try {
+                        // Fetch driver details on the fly for PDF
+                        final driverData = await Supabase.instance.client
+                            .from('profiles')
+                            .select('*, vehicles(plate_number)')
+                            .eq('id', driverId)
+                            .maybeSingle();
+                            
+                        if (driverData != null) {
+                           await PdfBillingSlipService.generateAndPrintSlip(
+                             driverData: driverData,
+                             billData: bill,
+                           );
+                        } else {
+                           if (context.mounted) {
+                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not fetch driver data')));
+                           }
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error generating PDF: $e')));
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.picture_as_pdf, color: Colors.greenAccent, size: 18),
+                    label: "Download Bill PDF".text.color(Colors.greenAccent).make(),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.greenAccent.withValues(alpha: 0.5)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ).animate().fade(delay: 600.ms).slideY(begin: 0.1, end: 0);
