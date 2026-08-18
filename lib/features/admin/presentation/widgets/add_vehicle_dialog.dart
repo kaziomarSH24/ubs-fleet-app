@@ -7,7 +7,8 @@ import '../../../../core/constants.dart';
 import '../providers/admin_providers.dart';
 
 class AddVehicleDialog extends ConsumerStatefulWidget {
-  const AddVehicleDialog({super.key});
+  final Map<String, dynamic>? vehicle;
+  const AddVehicleDialog({super.key, this.vehicle});
 
   @override
   ConsumerState<AddVehicleDialog> createState() => _AddVehicleDialogState();
@@ -21,6 +22,29 @@ class _AddVehicleDialogState extends ConsumerState<AddVehicleDialog> {
   final _plateController = TextEditingController();
   String _fuelType = 'Octane';
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.vehicle != null) {
+      final v = widget.vehicle!;
+      final modelStr = v['model']?.toString() ?? '';
+      
+      // Basic splitting for model and year (if it ends with a year)
+      if (modelStr.isNotEmpty) {
+        final parts = modelStr.split(' ');
+        if (parts.length > 1 && int.tryParse(parts.last) != null) {
+          _yearController.text = parts.last;
+          _vehicleModel = parts.sublist(0, parts.length - 1).join(' ');
+        } else {
+          _vehicleModel = modelStr;
+        }
+      }
+      
+      _plateController.text = v['plate_number']?.toString() ?? '';
+      _fuelType = v['fuel_type']?.toString() ?? 'Octane';
+    }
+  }
 
   @override
   void dispose() {
@@ -48,17 +72,26 @@ class _AddVehicleDialogState extends ConsumerState<AddVehicleDialog> {
 
       final fullModelName = '$finalModel ${_yearController.text.trim()}'.trim();
       
-      await repo.addVehicle(
-        model: fullModelName,
-        plateNumber: _plateController.text.trim(),
-        fuelType: _fuelType,
-      );
+      if (widget.vehicle != null) {
+        await repo.updateVehicle(
+          vehicleId: widget.vehicle!['id'],
+          model: fullModelName,
+          plateNumber: _plateController.text.trim(),
+          fuelType: _fuelType,
+        );
+      } else {
+        await repo.addVehicle(
+          model: fullModelName,
+          plateNumber: _plateController.text.trim(),
+          fuelType: _fuelType,
+        );
+      }
       
       // Invalidate to refresh the list
       ref.invalidate(vehiclesProvider);
       if (mounted) {
-        Navigator.pop(context);
-        AppSnackbar.showSuccess(context, 'Vehicle added successfully');
+        Navigator.pop(context, true); // pass true to indicate update
+        AppSnackbar.showSuccess(context, widget.vehicle != null ? 'Vehicle updated successfully' : 'Vehicle added successfully');
       }
     } catch (e) {
       if (mounted) {
@@ -82,7 +115,7 @@ class _AddVehicleDialogState extends ConsumerState<AddVehicleDialog> {
           borderRadius: BorderRadius.circular(20),
           side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
-        title: const Text('Add New Vehicle', style: TextStyle(color: Colors.white)),
+        title: Text(widget.vehicle != null ? 'Edit Vehicle' : 'Add New Vehicle', style: const TextStyle(color: Colors.white)),
         content: Form(
         key: _formKey,
         child: Column(
@@ -162,20 +195,24 @@ class _AddVehicleDialogState extends ConsumerState<AddVehicleDialog> {
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-          onPressed: _isLoading ? null : _submit,
-          child: _isLoading 
-            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
-            : const Text('Add Vehicle', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        ),
-      ],
-    ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+              ),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: _isLoading 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                    : Text(widget.vehicle != null ? 'Update Vehicle' : 'Add Vehicle', style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
     );
   }
 }

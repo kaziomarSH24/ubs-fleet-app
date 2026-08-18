@@ -244,6 +244,23 @@ class AdminRepository {
     }
   }
 
+  Future<void> updateVehicle({
+    required String vehicleId,
+    required String model,
+    required String plateNumber,
+    required String fuelType,
+  }) async {
+    try {
+      await _supabase.from('vehicles').update({
+        'model': model,
+        'plate_number': plateNumber,
+        'fuel_type': fuelType,
+      }).eq('id', vehicleId);
+    } catch (e) {
+      throw Exception('Failed to update vehicle: $e');
+    }
+  }
+
   /// Fetch vehicle models
   Future<List<String>> getVehicleModels() async {
     try {
@@ -286,6 +303,23 @@ class AdminRepository {
       });
     } catch (e) {
       throw Exception('Failed to create driver: $e');
+    }
+  }
+
+  Future<void> updateDriver({
+    required String driverId,
+    required String phone,
+    required String fullName,
+    String? clientId,
+  }) async {
+    try {
+      await _supabase.from('profiles').update({
+        'phone': phone,
+        'full_name': fullName,
+        'assign_client_id': clientId,
+      }).eq('id', driverId);
+    } catch (e) {
+      throw Exception('Failed to update driver: $e');
     }
   }
 

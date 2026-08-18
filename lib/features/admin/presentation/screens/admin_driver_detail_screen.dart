@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_aurora_background.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../providers/admin_providers.dart';
+import '../widgets/add_driver_dialog.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../driver/presentation/screens/driver_logs_screen.dart';
 import '../../../driver/data/repositories/driver_repository.dart';
@@ -178,6 +179,21 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
         elevation: 0,
         title: const Text('Driver Profile', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.pencil, color: Colors.cyanAccent),
+            onPressed: () async {
+              final result = await showDialog(
+                context: context,
+                builder: (context) => AddDriverDialog(driver: widget.driver),
+              );
+              if (result == true) {
+                // Return to refresh local state if needed.
+                if (mounted) Navigator.pop(context);
+              }
+            },
+          ),
+        ],
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),

@@ -6,7 +6,8 @@ import '../providers/admin_providers.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 
 class AddDriverDialog extends ConsumerStatefulWidget {
-  const AddDriverDialog({super.key});
+  final Map<String, dynamic>? driver;
+  const AddDriverDialog({super.key, this.driver});
 
   @override
   ConsumerState<AddDriverDialog> createState() => _AddDriverDialogState();
@@ -21,6 +22,17 @@ class _AddDriverDialogState extends ConsumerState<AddDriverDialog> {
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.driver != null) {
+      final d = widget.driver!;
+      _nameController.text = d['full_name']?.toString() ?? '';
+      _phoneController.text = d['phone']?.toString() ?? '';
+      _selectedClientId = d['assign_client_id']?.toString();
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
@@ -33,17 +45,27 @@ class _AddDriverDialogState extends ConsumerState<AddDriverDialog> {
     
     setState(() => _isLoading = true);
     try {
-      await ref.read(adminRepositoryProvider).createDriver(
-        fullName: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        password: _passwordController.text.trim(),
-        clientId: _selectedClientId,
-      );
+      if (widget.driver != null) {
+        // Edit mode (password optional or disabled if we don't handle it in update logic)
+        await ref.read(adminRepositoryProvider).updateDriver(
+          driverId: widget.driver!['id'],
+          fullName: _nameController.text.trim(),
+          phone: _phoneController.text.trim(),
+          clientId: _selectedClientId,
+        );
+      } else {
+        await ref.read(adminRepositoryProvider).createDriver(
+          fullName: _nameController.text.trim(),
+          phone: _phoneController.text.trim(),
+          password: _passwordController.text.trim(),
+          clientId: _selectedClientId,
+        );
+      }
       
       ref.invalidate(driversProvider);
       if (mounted) {
-        AppSnackbar.showSuccess(context, 'Driver added successfully');
-        Navigator.pop(context);
+        AppSnackbar.showSuccess(context, widget.driver != null ? 'Driver updated successfully' : 'Driver added successfully');
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) AppSnackbar.showError(context, 'Failed to add driver: $e');
@@ -78,7 +100,7 @@ class _AddDriverDialogState extends ConsumerState<AddDriverDialog> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Add New Driver', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                      Text(widget.driver != null ? 'Edit Driver' : 'Add New Driver', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                       IconButton(
                         icon: const Icon(LucideIcons.x, color: Colors.white54),
                         onPressed: () => Navigator.pop(context),
@@ -112,22 +134,24 @@ class _AddDriverDialogState extends ConsumerState<AddDriverDialog> {
                   ),
                   const SizedBox(height: 16),
 
-                  TextFormField(
-                    controller: _passwordController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
-                      labelText: '6-Digit PIN (Password)',
-                      labelStyle: TextStyle(color: Colors.white54),
-                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                  if (widget.driver == null) ...[
+                    TextFormField(
+                      controller: _passwordController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        labelText: '6-Digit PIN (Password)',
+                        labelStyle: TextStyle(color: Colors.white54),
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                      ),
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'Required';
+                        if (v.length < 6) return 'PIN must be at least 6 digits';
+                        return null;
+                      },
                     ),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Required';
-                      if (v.length < 6) return 'PIN must be at least 6 digits';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
+                  ],
 
                   clientsAsync.when(
                     data: (clients) {
