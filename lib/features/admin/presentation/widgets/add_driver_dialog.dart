@@ -27,8 +27,8 @@ class _AddDriverDialogState extends ConsumerState<AddDriverDialog> {
     if (widget.driver != null) {
       final d = widget.driver!;
       _nameController.text = d['full_name']?.toString() ?? '';
-      _phoneController.text = d['phone']?.toString() ?? '';
-      _selectedClientId = d['assign_client_id']?.toString();
+      _phoneController.text = d['phone_number']?.toString() ?? '';
+      _selectedClientId = d['client_id']?.toString();
     }
   }
 

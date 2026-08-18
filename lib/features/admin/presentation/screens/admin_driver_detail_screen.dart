@@ -1036,12 +1036,22 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
       final rates = await ref.read(billingRepositoryProvider).getDriverRates(widget.driverId);
       final existingBill = await ref.read(billingRepositoryProvider).getMonthlyBill(widget.driverId, monthStr);
       
+      // Fetch total advances for this month
+      final payments = await ref.read(driverRepositoryProvider).getDriverPayments(widget.driverId);
+      final currentMonthPayments = payments.where((p) {
+        if (p['payment_date'] == null) return false;
+        final date = DateTime.tryParse(p['payment_date'].toString());
+        if (date == null) return false;
+        return date.year == widget.monthDate.year && date.month == widget.monthDate.month;
+      }).toList();
+      final totalAdvance = currentMonthPayments.fold<double>(0.0, (sum, p) => sum + (double.tryParse(p['amount'].toString()) ?? 0.0));
+
       if (mounted) {
         setState(() {
           _rates = rates;
           if (existingBill != null) {
-            int cng = existingBill['actual_cng_km'] ?? 0;
-            int lpg = existingBill['actual_lpg_km'] ?? 0;
+            int cng = (existingBill['actual_cng_km'] as num?)?.toInt() ?? 0;
+            int lpg = (existingBill['actual_lpg_km'] as num?)?.toInt() ?? 0;
 
             if (widget.vehicleFuelType.toLowerCase() == 'lpg') {
               lpg += cng;
@@ -1052,14 +1062,14 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
             }
 
             _cngKmCtrl.text = cng.toString();
-            _octaneKmCtrl.text = (existingBill['actual_octane_km'] ?? 0).toString();
+            _octaneKmCtrl.text = (existingBill['actual_octane_km']?.toString() ?? '0');
             _lpgKmCtrl.text = lpg.toString();
-            _overtimeHrCtrl.text = (existingBill['actual_overtime_mins'] ?? 0).toString();
-            _nightStayCtrl.text = (existingBill['actual_night_stays'] ?? 0).toString();
-            _lunchDaysCtrl.text = (existingBill['actual_days_worked'] ?? 0).toString();
-            _tollCtrl.text = (existingBill['actual_tolls_parking'] ?? 0).toString();
-            _replaceDaysCtrl.text = (existingBill['replace_days'] ?? 0).toString();
-            _absentDaysCtrl.text = (existingBill['absent_days'] ?? 0).toString();
+            _overtimeHrCtrl.text = (existingBill['actual_overtime_hours']?.toString() ?? '0');
+            _nightStayCtrl.text = (existingBill['actual_night_stays']?.toString() ?? '0');
+            _lunchDaysCtrl.text = (existingBill['actual_working_days']?.toString() ?? '0');
+            _tollCtrl.text = (existingBill['actual_toll_parking']?.toString() ?? '0');
+            _replaceDaysCtrl.text = (existingBill['replace_days']?.toString() ?? '0');
+            _absentDaysCtrl.text = (existingBill['absent_days']?.toString() ?? '0');
             
             final existingRent = existingBill['vehicle_rent_amount'] ?? 0;
             if (existingRent > 0) {
@@ -1070,8 +1080,11 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
               _rentCtrl.text = "0";
             }
             
-            _advanceCtrl.text = (existingBill['advance_amount'] ?? 0).toString();
+            final existingAdvance = (existingBill['advance_amount'] as num?)?.toDouble() ?? 0.0;
+            _advanceCtrl.text = existingAdvance > 0 ? existingAdvance.toString() : totalAdvance.toString();
             _startingFuelAdded = existingBill['starting_fuel_added'] == true;
+          } else {
+            _advanceCtrl.text = totalAdvance.toString();
           }
           _isLoading = false;
         });
@@ -1080,6 +1093,7 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
       if (mounted) {
         setState(() => _isLoading = false);
         AppSnackbar.showError(context, "Failed to load billing data");
+        print("Error in _loadData: $e");
       }
     }
   }
@@ -1120,21 +1134,21 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
         
         // Claimed
         'claimed_total_km': widget.claimedKm, 
-        'claimed_overtime_mins': widget.claimedOvertimeHours,
-        'claimed_days_worked': widget.claimedDaysWorked,
-        'claimed_tolls_parking': widget.claimedToll,
+        'claimed_overtime_hours': widget.claimedOvertimeHours,
+        'claimed_working_days': widget.claimedDaysWorked,
+        'claimed_toll_parking': widget.claimedToll,
         
         // Actual
         'actual_cng_km': (double.tryParse(_cngKmCtrl.text) ?? 0).toInt(),
         'actual_octane_km': (double.tryParse(_octaneKmCtrl.text) ?? 0).toInt(),
         'actual_lpg_km': (double.tryParse(_lpgKmCtrl.text) ?? 0).toInt(),
-        'actual_overtime_mins': (double.tryParse(_overtimeHrCtrl.text) ?? 0).toInt(),
+        'actual_overtime_hours': (double.tryParse(_overtimeHrCtrl.text) ?? 0).toInt(),
         'actual_night_stays': int.tryParse(_nightStayCtrl.text) ?? 0,
-        'actual_days_worked': int.tryParse(_lunchDaysCtrl.text) ?? 0,
-        'actual_tolls_parking': double.tryParse(_tollCtrl.text) ?? 0,
-        'starting_fuel_added': _startingFuelAdded,
-        'replace_days': int.tryParse(_replaceDaysCtrl.text) ?? 0,
-        'absent_days': int.tryParse(_absentDaysCtrl.text) ?? 0,
+        'actual_working_days': int.tryParse(_lunchDaysCtrl.text) ?? 0,
+        'actual_toll_parking': double.tryParse(_tollCtrl.text) ?? 0,
+        'starting_fuel': _startingFuelAdded,
+        'actual_replace_days': int.tryParse(_replaceDaysCtrl.text) ?? 0,
+        'actual_absent_days': int.tryParse(_absentDaysCtrl.text) ?? 0,
         'vehicle_rent_amount': double.tryParse(_rentCtrl.text) ?? 0,
         'advance_amount': double.tryParse(_advanceCtrl.text) ?? 0,
         

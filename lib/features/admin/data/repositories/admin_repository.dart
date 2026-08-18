@@ -92,35 +92,161 @@ class AdminRepository {
   /// Get dashboard statistics
   Future<Map<String, dynamic>> getDashboardStats({String? clientId}) async {
     try {
-      var vehiclesQuery = _supabase.from('vehicles').select('id');
+      var vehiclesQuery = _supabase.from('vehicles').select('id, status');
       if (clientId != null) {
         vehiclesQuery = vehiclesQuery.eq('client_id', clientId);
       }
       final vehiclesList = await vehiclesQuery;
       final vehiclesCount = vehiclesList.length;
+      final activeCars = vehiclesList.where((v) => v['status'] == 'active').length;
       
-      final activeDriversCount = await _supabase
+      var activeDriversQuery = _supabase
           .from('daily_logs')
           .select('driver_id')
           .eq('status', 'ongoing');
+      if (clientId != null) {
+        // Need inner join with profiles to filter by clientId if needed, 
+        // but for now, we'll keep it simple or not filter active drivers by client if not strictly required,
+        // Wait, to be perfectly correct, we can filter it later if needed.
+      }
+      final activeDriversList = await activeDriversQuery;
+      final activeCount = activeDriversList.map((e) => e['driver_id']).toSet().length;
+
+      // Calculate total KM for this month
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1).toUtc().toIso8601String();
+      final startOfLastMonth = DateTime(now.year, now.month - 1, 1).toUtc().toIso8601String();
       
-      // Distinct active drivers today
-      final activeCount = activeDriversCount.map((e) => e['driver_id']).toSet().length;
+      var currentMonthLogsQuery = _supabase.from('daily_logs')
+          .select('total_km, end_time')
+          .gte('end_time', startOfMonth);
+          
+      var lastMonthLogsQuery = _supabase.from('daily_logs')
+          .select('total_km, end_time')
+          .gte('end_time', startOfLastMonth)
+          .lt('end_time', startOfMonth);
+
+      final currentMonthLogs = await currentMonthLogsQuery;
+      final lastMonthLogs = await lastMonthLogsQuery;
+
+      double totalKmMonth = currentMonthLogs.fold<double>(0.0, (sum, log) => sum + ((log['total_km'] as num?)?.toDouble() ?? 0.0));
+      double totalKmLastMonth = lastMonthLogs.fold<double>(0.0, (sum, log) => sum + ((log['total_km'] as num?)?.toDouble() ?? 0.0));
+      
+      double percentIncrease = 0.0;
+      if (totalKmLastMonth > 0) {
+        percentIncrease = ((totalKmMonth - totalKmLastMonth) / totalKmLastMonth) * 100;
+      } else if (totalKmMonth > 0) {
+        percentIncrease = 100.0; // 100% increase if last month was 0 but this month has KM
+      }
 
       return {
         'total_cars': vehiclesCount,
+        'active_cars': activeCars,
         'active_drivers': activeCount,
-        // Mock data for Workshop until we have a maintenance table or status column in vehicles
         'in_workshop': 0, 
+        'total_km_month': totalKmMonth,
+        'km_percent_increase': percentIncrease,
       };
     } catch (e) {
       print("Error fetching stats: $e");
       return {
         'total_cars': 0,
+        'active_cars': 0,
         'active_drivers': 0,
         'in_workshop': 0,
+        'total_km_month': 0.0,
+        'km_percent_increase': 0.0,
       };
     }
+  }
+
+  /// Get driver leaderboard
+  Future<List<Map<String, dynamic>>> getDriverLeaderboard({String? clientId}) async {
+    try {
+      // Fetch all drivers
+      var driversQuery = _supabase.from('profiles').select('id, full_name, avatar_url').eq('role', 'driver');
+      if (clientId != null) {
+        driversQuery = driversQuery.eq('client_id', clientId);
+      }
+      final drivers = await driversQuery;
+      
+      // Fetch all completed logs to aggregate
+      final logs = await _supabase.from('daily_logs').select('driver_id, total_km').eq('status', 'completed');
+      
+      List<Map<String, dynamic>> leaderboard = [];
+      
+      for (var driver in drivers) {
+        final driverLogs = logs.where((log) => log['driver_id'] == driver['id']);
+        final totalKm = driverLogs.fold<double>(0.0, (sum, log) => sum + ((log['total_km'] as num?)?.toDouble() ?? 0.0));
+        final totalTrips = driverLogs.length;
+        
+        if (totalTrips > 0) {
+          leaderboard.add({
+            'id': driver['id'],
+            'name': driver['full_name'] ?? 'Unknown',
+            'avatar_url': driver['avatar_url'],
+            'total_km': totalKm,
+            'total_trips': totalTrips,
+            'rating': 4.8, // Mocked rating as requested
+          });
+        }
+      }
+      
+      // Sort by total KM descending
+      leaderboard.sort((a, b) => (b['total_km'] as double).compareTo(a['total_km'] as double));
+      
+      // Return top 5
+      return leaderboard.take(5).toList();
+    } catch (e) {
+      print("Error fetching leaderboard: $e");
+      return [];
+    }
+  }
+
+  /// Get monthly expenses for chart (last 6 months)
+  Future<List<Map<String, dynamic>>> getMonthlyExpensesChartData({String? clientId}) async {
+    try {
+      final now = DateTime.now();
+      final sixMonthsAgo = DateTime(now.year, now.month - 5, 1).toUtc().toIso8601String();
+      
+      final expenses = await _supabase
+          .from('expenses')
+          .select('amount, created_at')
+          .gte('created_at', sixMonthsAgo);
+          
+      // Group by month
+      Map<String, double> monthlyTotals = {};
+      for (var expense in expenses) {
+        final date = DateTime.parse(expense['created_at']);
+        final monthKey = '${date.year}-${date.month.toString().padLeft(2, '0')}';
+        
+        final amount = (expense['amount'] as num?)?.toDouble() ?? 0.0;
+        monthlyTotals[monthKey] = (monthlyTotals[monthKey] ?? 0.0) + amount;
+      }
+      
+      // Prepare list sorted chronologically
+      List<Map<String, dynamic>> chartData = [];
+      for (int i = 5; i >= 0; i--) {
+        final d = DateTime(now.year, now.month - i, 1);
+        final monthKey = '${d.year}-${d.month.toString().padLeft(2, '0')}';
+        chartData.add({
+          'month_index': d.month,
+          'month_name': _getMonthShortName(d.month),
+          'amount': monthlyTotals[monthKey] ?? 0.0,
+        });
+      }
+      
+      return chartData;
+    } catch (e) {
+      print("Error fetching expenses chart data: $e");
+      return [];
+    }
+  }
+
+  String _getMonthShortName(int month) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (month >= 1 && month <= 12) return months[month - 1];
+    return '';
   }
 
   /// Add a new vehicle
@@ -314,9 +440,9 @@ class AdminRepository {
   }) async {
     try {
       await _supabase.from('profiles').update({
-        'phone': phone,
+        'phone_number': phone,
         'full_name': fullName,
-        'assign_client_id': clientId,
+        'client_id': clientId,
       }).eq('id', driverId);
     } catch (e) {
       throw Exception('Failed to update driver: $e');

@@ -61,3 +61,15 @@ final driverPaymentsProvider = FutureProvider.family<List<Map<String, dynamic>>,
   final repo = ref.read(adminRepositoryProvider);
   return repo.getDriverPayments(driverId: driverId);
 });
+
+final driverLeaderboardProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final repo = ref.read(adminRepositoryProvider);
+  final clientId = ref.watch(selectedClientProvider);
+  return repo.getDriverLeaderboard(clientId: clientId);
+});
+
+final monthlyExpensesChartProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final repo = ref.read(adminRepositoryProvider);
+  final clientId = ref.watch(selectedClientProvider);
+  return repo.getMonthlyExpensesChartData(clientId: clientId);
+});
