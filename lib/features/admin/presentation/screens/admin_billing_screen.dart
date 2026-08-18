@@ -232,7 +232,7 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
                             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black87))
                             : const Icon(LucideIcons.sheet, color: Colors.black87),
                         label: Text(
-                          _isExporting ? 'Generating Excel...' : 'Export Master Excel (CSV)',
+                          _isExporting ? 'Generating Excel...' : 'Export Master Excel (XLSX)',
                           style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         style: ElevatedButton.styleFrom(
