@@ -56,9 +56,9 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
     );
-    if (result == null || result.files.single.path == null) return;
-    final file = File(result.files.single.path!);
-    final fileName = result.files.single.name;
+    if (result == null || result.isEmpty || result.single.path == null) return;
+    final file = File(result.single.path!);
+    final fileName = result.single.name;
 
     // Show dialog to enter document type
     String docType = '';

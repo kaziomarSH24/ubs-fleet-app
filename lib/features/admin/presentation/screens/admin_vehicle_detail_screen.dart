@@ -61,9 +61,9 @@ class _AdminVehicleDetailScreenState extends ConsumerState<AdminVehicleDetailScr
       type: FileType.custom,
       allowedExtensions: ['pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx'],
     );
-    if (result == null || result.files.isEmpty) return;
+    if (result == null || result.isEmpty) return;
     
-    final file = result.files.first;
+    final file = result.first;
     if (file.path == null) return;
 
     DateTime? expiryDate;
