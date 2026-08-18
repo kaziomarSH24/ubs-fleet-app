@@ -577,9 +577,9 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: Colors.white.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+            border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3), width: 1.2),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,7 +587,13 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  "MONTHLY SUMMARY".text.color(Colors.white70).bold.letterSpacing(1).make(),
+                  Row(
+                    children: [
+                      const Icon(LucideIcons.calendarClock, color: Colors.cyanAccent, size: 20),
+                      8.widthBox,
+                      "MONTHLY SUMMARY".text.color(Colors.cyanAccent).bold.letterSpacing(1).make(),
+                    ],
+                  ),
                   DateFormat('MMM yyyy').format(now).text.color(Colors.white54).make(),
                 ],
               ),
@@ -598,8 +604,9 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.3),
+                        color: Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white10),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -641,9 +648,9 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.cyan.withValues(alpha: 0.1),
+                        color: Colors.cyanAccent.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.cyan.withValues(alpha: 0.2)),
+                        border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.15)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -667,6 +674,7 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                 ],
               ),
 
+              const Divider(color: Colors.white10, height: 32),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -700,13 +708,15 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                     backgroundColor: Colors.cyanAccent,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 8,
+                    shadowColor: Colors.cyanAccent.withValues(alpha: 0.3),
                   ),
                 ),
               ),
               12.heightBox,
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
+                child: OutlinedButton.icon(
                   onPressed: () async {
                     try {
                       final monthStr = DateFormat('yyyy-MM').format(now);
@@ -724,12 +734,10 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                       if (mounted) AppSnackbar.showError(context, "Failed to generate slip: $e");
                     }
                   },
-                  icon: const Icon(LucideIcons.download, size: 18, color: Colors.white),
-                  label: const Text('Download Driver Slip (PDF)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    side: const BorderSide(color: Colors.cyanAccent),
+                  icon: const Icon(LucideIcons.fileText, size: 18, color: Colors.cyanAccent),
+                  label: const Text('Download Driver Slip (PDF)', style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.cyanAccent.withValues(alpha: 0.3)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
