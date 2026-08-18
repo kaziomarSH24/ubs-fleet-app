@@ -568,5 +568,4 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       ],
     );
   }
-
 }

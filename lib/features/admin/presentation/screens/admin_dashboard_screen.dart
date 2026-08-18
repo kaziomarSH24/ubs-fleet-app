@@ -149,18 +149,15 @@ class AdminDashboardScreen extends ConsumerWidget {
               icon: const Icon(LucideIcons.bell, color: Colors.white70, size: 22),
               onPressed: () {},
             ),
-            IconButton(
-              icon: const Icon(LucideIcons.logOut, color: Colors.redAccent, size: 22),
-              onPressed: () async {
-                await ref.read(authServiceProvider).signOut();
-                if (context.mounted) {
-                  context.go('/login');
-                }
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () {
+                Scaffold.of(context).openEndDrawer();
               },
-            ),
-            const CircleAvatar(
-              radius: 18,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'), // Dummy profile pic matching design
+              child: const CircleAvatar(
+                radius: 18,
+                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'), // Dummy profile pic matching design
+              ),
             ),
           ],
         ),

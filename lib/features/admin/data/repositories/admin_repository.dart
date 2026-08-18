@@ -396,4 +396,42 @@ class AdminRepository {
       throw Exception('Failed to update document status: $e');
     }
   }
+
+  /// Add a driver payment
+  Future<void> addDriverPayment({
+    required String driverId,
+    required double amount,
+    required DateTime paymentDate,
+    String? note,
+  }) async {
+    try {
+      await _supabase.from('driver_payments').insert({
+        'driver_id': driverId,
+        'amount': amount,
+        'payment_date': paymentDate.toIso8601String().split('T').first,
+        'note': note,
+      });
+    } catch (e) {
+      throw Exception('Failed to add driver payment: $e');
+    }
+  }
+
+  /// Fetch payments
+  Future<List<Map<String, dynamic>>> getDriverPayments({String? driverId}) async {
+    try {
+      var query = _supabase
+          .from('driver_payments')
+          .select('*, profiles!driver_payments_driver_id_fkey(full_name)');
+      
+      if (driverId != null) {
+        query = query.eq('driver_id', driverId);
+      }
+      
+      final response = await query.order('payment_date', ascending: false);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print("Error fetching payments: $e");
+      return [];
+    }
+  }
 }

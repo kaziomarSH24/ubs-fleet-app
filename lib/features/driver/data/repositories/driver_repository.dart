@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
-
 import '../../../../core/database/hive_setup.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/database/entities/daily_log_local.dart';
 import '../../../../core/database/entities/expense_local.dart';
 import '../../../sync/domain/services/sync_service.dart';
@@ -152,6 +152,37 @@ class DriverRepository {
       'created_at': createdAt.toIso8601String(),
     };
     await _syncService.queueAction('CREATE_EXPENSE', payload);
+  }
+
+  Future<void> logRefuel({
+    required String driverId,
+    required String logId,
+    required double fuelQuantity,
+    required double fuelAmount,
+    required String currentFuelType,
+  }) async {
+    final payload = {
+      'p_log_id': logId,
+      'p_driver_id': driverId,
+      'p_fuel_quantity': fuelQuantity,
+      'p_fuel_amount': fuelAmount,
+      'p_fuel_type': currentFuelType,
+    };
+    await _syncService.queueAction('log_refuel', payload);
+  }
+
+  Future<List<Map<String, dynamic>>> getDriverPayments(String driverId) async {
+    try {
+      final response = await Supabase.instance.client
+          .from('driver_payments')
+          .select()
+          .eq('driver_id', driverId)
+          .order('payment_date', ascending: false);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print("Error fetching driver payments: $e");
+      return [];
+    }
   }
 
   // Reactive streams for the UI

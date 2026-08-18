@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../widgets/admin_sidebar.dart';
 
 class AdminMainScreen extends StatelessWidget {
   final Widget child;
@@ -19,6 +20,7 @@ class AdminMainScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      endDrawer: const AdminSidebar(),
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth >= 800) {
