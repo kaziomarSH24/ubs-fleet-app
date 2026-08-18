@@ -660,7 +660,6 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                       builder: (context) => AddDriverPaymentDialog(initialDriverId: widget.driver['id']),
                     ).then((_) {
                       ref.invalidate(driverPaymentsProvider);
-                      ref.invalidate(driverDetailProvider(widget.driver['id']));
                     });
                   },
                   icon: const Icon(LucideIcons.banknote, size: 18, color: Colors.black87),
