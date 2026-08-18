@@ -65,14 +65,34 @@ class CompanyExcelReportService {
       final rentAmt = bill['vehicle_rent_amount'] ?? vehicle['rent_amount'] ?? 0;
       final dutyDays = bill['actual_working_days'] ?? 0;
       
-      final logCng = bill['claimed_cng_km'] ?? 0;
+      int logCng = (bill['claimed_cng_km'] as num?)?.toInt() ?? 0;
+      int logLpg = (bill['claimed_lpg_km'] as num?)?.toInt() ?? 0;
+      int logOctane = (bill['claimed_octane_km'] as num?)?.toInt() ?? 0;
+      
+      final claimedTotal = (bill['claimed_total_km'] as num?)?.toInt() ?? 0;
+      final fuelTypeLower = fuelType.toString().toLowerCase();
+      
+      // If backend only saved claimed_total_km, assign it to primary fuel
+      if (claimedTotal > 0 && logCng == 0 && logLpg == 0 && logOctane == 0) {
+        if (fuelTypeLower == 'lpg') {
+          logLpg = claimedTotal;
+        } else if (fuelTypeLower == 'octane') {
+          logOctane = claimedTotal;
+        } else {
+          logCng = claimedTotal;
+        }
+      } 
+      // If legacy backend saved into claimed_cng_km but vehicle is LPG
+      else if (logCng > 0 && logLpg == 0 && fuelTypeLower == 'lpg') {
+        logLpg = logCng;
+        logCng = 0;
+      }
+      
       final finalCng = bill['actual_cng_km'] ?? 0;
       final replaceCng = 0; 
       
-      final logLpg = bill['claimed_lpg_km'] ?? 0;
       final finalLpg = bill['actual_lpg_km'] ?? 0;
       
-      final logOctane = bill['claimed_octane_km'] ?? 0;
       final finalOctane = bill['actual_octane_km'] ?? 0;
       final replaceOctane = 0;
       
