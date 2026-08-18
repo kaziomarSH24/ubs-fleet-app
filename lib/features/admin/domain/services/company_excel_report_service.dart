@@ -158,7 +158,7 @@ class CompanyExcelReportService {
       
       final valCell = sheet.getRangeByIndex(curRow, rateSettingsStartCol + 1);
       final val = rates[i][1];
-      if (val is double || val is int) {
+      if (val is num) {
         valCell.setNumber(val.toDouble());
         valCell.cellStyle.numberFormat = '0.00';
       } else {
