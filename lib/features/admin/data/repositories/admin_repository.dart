@@ -10,11 +10,11 @@ class AdminRepository {
         .from('profiles')
         .select('*, clients(*), vehicles(*)')
         .eq('role', 'driver');
-    
+
     if (clientId != null) {
       query = query.eq('client_id', clientId);
     }
-    
+
     final response = await query.order('full_name', ascending: true);
     return response;
   }
@@ -24,11 +24,11 @@ class AdminRepository {
     var query = _supabase
         .from('vehicles')
         .select('*, profiles:current_driver_id(full_name)');
-        
+
     if (clientId != null) {
       query = query.eq('client_id', clientId);
     }
-    
+
     final response = await query.order('plate_number', ascending: true);
     return response;
   }
@@ -47,21 +47,24 @@ class AdminRepository {
   }
 
   /// Fetch recent logs (default 50)
-  Future<List<Map<String, dynamic>>> getRecentLogs({int limit = 50, String? clientId}) async {
+  Future<List<Map<String, dynamic>>> getRecentLogs({
+    int limit = 50,
+    String? clientId,
+  }) async {
     try {
-      var query = _supabase
-          .from('daily_logs')
-          .select('''
+      var query = _supabase.from('daily_logs').select('''
             *,
             profiles!inner(full_name, client_id),
             vehicles(plate_number)
           ''');
-          
+
       if (clientId != null) {
         query = query.eq('profiles.client_id', clientId);
       }
-      
-      final response = await query.order('start_time', ascending: false).limit(limit);
+
+      final response = await query
+          .order('start_time', ascending: false)
+          .limit(limit);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       throw Exception('Failed to fetch logs: $e');
@@ -69,20 +72,22 @@ class AdminRepository {
   }
 
   /// Fetch pending expenses
-  Future<List<Map<String, dynamic>>> getPendingExpenses({String? clientId}) async {
+  Future<List<Map<String, dynamic>>> getPendingExpenses({
+    String? clientId,
+  }) async {
     try {
-      var query = _supabase
-          .from('expenses')
-          .select('''
+      var query = _supabase.from('expenses').select('''
             *,
             profiles!inner(full_name, client_id)
           ''');
-          
+
       if (clientId != null) {
         query = query.eq('profiles.client_id', clientId);
       }
-      
-      final response = await query.order('created_at', ascending: false).limit(50);
+
+      final response = await query
+          .order('created_at', ascending: false)
+          .limit(50);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       throw Exception('Failed to fetch expenses: $e');
@@ -98,30 +103,45 @@ class AdminRepository {
       }
       final vehiclesList = await vehiclesQuery;
       final vehiclesCount = vehiclesList.length;
-      final activeCars = vehiclesList.where((v) => v['status'] == 'active').length;
-      
+      final activeCars = vehiclesList
+          .where((v) => v['status'] == 'active')
+          .length;
+
       var activeDriversQuery = _supabase
           .from('daily_logs')
           .select('driver_id')
           .eq('status', 'ongoing');
       if (clientId != null) {
-        // Need inner join with profiles to filter by clientId if needed, 
+        // Need inner join with profiles to filter by clientId if needed,
         // but for now, we'll keep it simple or not filter active drivers by client if not strictly required,
         // Wait, to be perfectly correct, we can filter it later if needed.
       }
       final activeDriversList = await activeDriversQuery;
-      final activeCount = activeDriversList.map((e) => e['driver_id']).toSet().length;
+      final activeCount = activeDriversList
+          .map((e) => e['driver_id'])
+          .toSet()
+          .length;
 
       // Calculate total KM for this month
       final now = DateTime.now();
-      final startOfMonth = DateTime(now.year, now.month, 1).toUtc().toIso8601String();
-      final startOfLastMonth = DateTime(now.year, now.month - 1, 1).toUtc().toIso8601String();
-      
-      var currentMonthLogsQuery = _supabase.from('daily_logs')
+      final startOfMonth = DateTime(
+        now.year,
+        now.month,
+        1,
+      ).toUtc().toIso8601String();
+      final startOfLastMonth = DateTime(
+        now.year,
+        now.month - 1,
+        1,
+      ).toUtc().toIso8601String();
+
+      var currentMonthLogsQuery = _supabase
+          .from('daily_logs')
           .select('total_km, end_time')
           .gte('end_time', startOfMonth);
-          
-      var lastMonthLogsQuery = _supabase.from('daily_logs')
+
+      var lastMonthLogsQuery = _supabase
+          .from('daily_logs')
           .select('total_km, end_time')
           .gte('end_time', startOfLastMonth)
           .lt('end_time', startOfMonth);
@@ -129,21 +149,29 @@ class AdminRepository {
       final currentMonthLogs = await currentMonthLogsQuery;
       final lastMonthLogs = await lastMonthLogsQuery;
 
-      double totalKmMonth = currentMonthLogs.fold<double>(0.0, (sum, log) => sum + ((log['total_km'] as num?)?.toDouble() ?? 0.0));
-      double totalKmLastMonth = lastMonthLogs.fold<double>(0.0, (sum, log) => sum + ((log['total_km'] as num?)?.toDouble() ?? 0.0));
-      
+      double totalKmMonth = currentMonthLogs.fold<double>(
+        0.0,
+        (sum, log) => sum + ((log['total_km'] as num?)?.toDouble() ?? 0.0),
+      );
+      double totalKmLastMonth = lastMonthLogs.fold<double>(
+        0.0,
+        (sum, log) => sum + ((log['total_km'] as num?)?.toDouble() ?? 0.0),
+      );
+
       double percentIncrease = 0.0;
       if (totalKmLastMonth > 0) {
-        percentIncrease = ((totalKmMonth - totalKmLastMonth) / totalKmLastMonth) * 100;
+        percentIncrease =
+            ((totalKmMonth - totalKmLastMonth) / totalKmLastMonth) * 100;
       } else if (totalKmMonth > 0) {
-        percentIncrease = 100.0; // 100% increase if last month was 0 but this month has KM
+        percentIncrease =
+            100.0; // 100% increase if last month was 0 but this month has KM
       }
 
       return {
         'total_cars': vehiclesCount,
         'active_cars': activeCars,
         'active_drivers': activeCount,
-        'in_workshop': 0, 
+        'in_workshop': 0,
         'total_km_month': totalKmMonth,
         'km_percent_increase': percentIncrease,
       };
@@ -161,25 +189,38 @@ class AdminRepository {
   }
 
   /// Get driver leaderboard
-  Future<List<Map<String, dynamic>>> getDriverLeaderboard({String? clientId}) async {
+  Future<List<Map<String, dynamic>>> getDriverLeaderboard({
+    String? clientId,
+  }) async {
     try {
       // Fetch all drivers
-      var driversQuery = _supabase.from('profiles').select('id, full_name, avatar_url').eq('role', 'driver');
+      var driversQuery = _supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .eq('role', 'driver');
       if (clientId != null) {
         driversQuery = driversQuery.eq('client_id', clientId);
       }
       final drivers = await driversQuery;
-      
+
       // Fetch all completed logs to aggregate
-      final logs = await _supabase.from('daily_logs').select('driver_id, total_km').eq('status', 'completed');
-      
+      final logs = await _supabase
+          .from('daily_logs')
+          .select('driver_id, total_km')
+          .eq('status', 'completed');
+
       List<Map<String, dynamic>> leaderboard = [];
-      
+
       for (var driver in drivers) {
-        final driverLogs = logs.where((log) => log['driver_id'] == driver['id']);
-        final totalKm = driverLogs.fold<double>(0.0, (sum, log) => sum + ((log['total_km'] as num?)?.toDouble() ?? 0.0));
+        final driverLogs = logs.where(
+          (log) => log['driver_id'] == driver['id'],
+        );
+        final totalKm = driverLogs.fold<double>(
+          0.0,
+          (sum, log) => sum + ((log['total_km'] as num?)?.toDouble() ?? 0.0),
+        );
         final totalTrips = driverLogs.length;
-        
+
         if (totalTrips > 0) {
           leaderboard.add({
             'id': driver['id'],
@@ -191,10 +232,12 @@ class AdminRepository {
           });
         }
       }
-      
+
       // Sort by total KM descending
-      leaderboard.sort((a, b) => (b['total_km'] as double).compareTo(a['total_km'] as double));
-      
+      leaderboard.sort(
+        (a, b) => (b['total_km'] as double).compareTo(a['total_km'] as double),
+      );
+
       // Return top 5
       return leaderboard.take(5).toList();
     } catch (e) {
@@ -204,26 +247,33 @@ class AdminRepository {
   }
 
   /// Get monthly expenses for chart (last 6 months)
-  Future<List<Map<String, dynamic>>> getMonthlyExpensesChartData({String? clientId}) async {
+  Future<List<Map<String, dynamic>>> getMonthlyExpensesChartData({
+    String? clientId,
+  }) async {
     try {
       final now = DateTime.now();
-      final sixMonthsAgo = DateTime(now.year, now.month - 5, 1).toUtc().toIso8601String();
-      
+      final sixMonthsAgo = DateTime(
+        now.year,
+        now.month - 5,
+        1,
+      ).toUtc().toIso8601String();
+
       final expenses = await _supabase
           .from('expenses')
           .select('amount, created_at')
           .gte('created_at', sixMonthsAgo);
-          
+
       // Group by month
       Map<String, double> monthlyTotals = {};
       for (var expense in expenses) {
         final date = DateTime.parse(expense['created_at']);
-        final monthKey = '${date.year}-${date.month.toString().padLeft(2, '0')}';
-        
+        final monthKey =
+            '${date.year}-${date.month.toString().padLeft(2, '0')}';
+
         final amount = (expense['amount'] as num?)?.toDouble() ?? 0.0;
         monthlyTotals[monthKey] = (monthlyTotals[monthKey] ?? 0.0) + amount;
       }
-      
+
       // Prepare list sorted chronologically
       List<Map<String, dynamic>> chartData = [];
       for (int i = 5; i >= 0; i--) {
@@ -235,7 +285,7 @@ class AdminRepository {
           'amount': monthlyTotals[monthKey] ?? 0.0,
         });
       }
-      
+
       return chartData;
     } catch (e) {
       print("Error fetching expenses chart data: $e");
@@ -244,7 +294,20 @@ class AdminRepository {
   }
 
   String _getMonthShortName(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     if (month >= 1 && month <= 12) return months[month - 1];
     return '';
   }
@@ -312,7 +375,9 @@ class AdminRepository {
   }
 
   /// Fetch documents for a specific vehicle
-  Future<List<Map<String, dynamic>>> getVehicleDocuments(String vehicleId) async {
+  Future<List<Map<String, dynamic>>> getVehicleDocuments(
+    String vehicleId,
+  ) async {
     try {
       final response = await _supabase
           .from('vehicle_documents')
@@ -334,11 +399,16 @@ class AdminRepository {
     required DateTime? expiryDate,
   }) async {
     try {
-      final storagePath = '$vehicleId/$docType-${DateTime.now().millisecondsSinceEpoch}-$fileName';
-      
-      await _supabase.storage.from('vehicle_documents').upload(storagePath, file);
-      final fileUrl = _supabase.storage.from('vehicle_documents').getPublicUrl(storagePath);
-      
+      final storagePath =
+          '$vehicleId/$docType-${DateTime.now().millisecondsSinceEpoch}-$fileName';
+
+      await _supabase.storage
+          .from('vehicle_documents')
+          .upload(storagePath, file);
+      final fileUrl = _supabase.storage
+          .from('vehicle_documents')
+          .getPublicUrl(storagePath);
+
       await _supabase.from('vehicle_documents').insert({
         'vehicle_id': vehicleId,
         'doc_type': docType,
@@ -377,11 +447,14 @@ class AdminRepository {
     required String fuelType,
   }) async {
     try {
-      await _supabase.from('vehicles').update({
-        'model': model,
-        'plate_number': plateNumber,
-        'fuel_type': fuelType,
-      }).eq('id', vehicleId);
+      await _supabase
+          .from('vehicles')
+          .update({
+            'model': model,
+            'plate_number': plateNumber,
+            'fuel_type': fuelType,
+          })
+          .eq('id', vehicleId);
     } catch (e) {
       throw Exception('Failed to update vehicle: $e');
     }
@@ -421,12 +494,15 @@ class AdminRepository {
     String? clientId,
   }) async {
     try {
-      await _supabase.rpc('admin_create_driver', params: {
-        'driver_password': password,
-        'driver_phone': phone,
-        'driver_full_name': fullName,
-        'assign_client_id': clientId,
-      });
+      await _supabase.rpc(
+        'admin_create_driver',
+        params: {
+          'driver_password': password,
+          'driver_phone': phone,
+          'driver_full_name': fullName,
+          'assign_client_id': clientId,
+        },
+      );
     } catch (e) {
       throw Exception('Failed to create driver: $e');
     }
@@ -439,11 +515,14 @@ class AdminRepository {
     String? clientId,
   }) async {
     try {
-      await _supabase.from('profiles').update({
-        'phone_number': phone,
-        'full_name': fullName,
-        'client_id': clientId,
-      }).eq('id', driverId);
+      await _supabase
+          .from('profiles')
+          .update({
+            'phone_number': phone,
+            'full_name': fullName,
+            'client_id': clientId,
+          })
+          .eq('id', driverId);
     } catch (e) {
       throw Exception('Failed to update driver: $e');
     }
@@ -484,18 +563,21 @@ class AdminRepository {
     required DateTime? expiryDate,
   }) async {
     try {
-      final storagePath = 'drivers/$driverId/$docType-${DateTime.now().millisecondsSinceEpoch}-$fileName';
-      
-      // Ensure the 'driver_documents' storage bucket exists in Supabase, 
+      final storagePath =
+          'drivers/$driverId/$docType-${DateTime.now().millisecondsSinceEpoch}-$fileName';
+
+      // Ensure the 'driver_documents' storage bucket exists in Supabase,
       // or we can use a generic 'documents' bucket. Assuming 'driver_documents' for now.
-      await _supabase.storage.from('driver_documents').upload(storagePath, file);
-      
+      await _supabase.storage
+          .from('driver_documents')
+          .upload(storagePath, file);
+
       await _supabase.from('driver_documents').insert({
         'driver_id': driverId,
         'doc_type': docType,
         'file_url': storagePath,
         'expiry_date': expiryDate?.toIso8601String(),
-        'status': 'approved' // Uploaded by admin, so auto-approved
+        'status': 'approved', // Uploaded by admin, so auto-approved
       });
     } catch (e) {
       throw Exception('Failed to upload driver document: $e');
@@ -534,25 +616,39 @@ class AdminRepository {
       await _supabase.from('driver_payments').insert({
         'driver_id': driverId,
         'amount': amount,
-        'payment_date': paymentDate.toIso8601String().split('T').first,
+        'payment_date': paymentDate.toIso8601String(),
         'note': note,
       });
     } catch (e) {
-      throw Exception('Failed to add driver payment: $e');
+      print("Error adding payment: $e");
+      rethrow;
+    }
+  }
+
+  /// Delete a payment
+  Future<void> deleteDriverPayment(String paymentId) async {
+    try {
+      await _supabase.from('driver_payments').delete().eq('id', paymentId);
+    } catch (e) {
+      print("Error deleting payment: $e");
+      rethrow;
     }
   }
 
   /// Fetch payments
-  Future<List<Map<String, dynamic>>> getDriverPayments({String? driverId, DateTime? month}) async {
+  Future<List<Map<String, dynamic>>> getDriverPayments({
+    String? driverId,
+    DateTime? month,
+  }) async {
     try {
       var query = _supabase
           .from('driver_payments')
           .select('*, profiles!driver_payments_driver_id_fkey(full_name)');
-      
+
       if (driverId != null) {
         query = query.eq('driver_id', driverId);
       }
-      
+
       if (month != null) {
         final startOfMonth = DateTime(month.year, month.month, 1);
         final endOfMonth = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
@@ -560,7 +656,7 @@ class AdminRepository {
             .gte('payment_date', startOfMonth.toIso8601String())
             .lte('payment_date', endOfMonth.toIso8601String());
       }
-      
+
       final response = await query.order('payment_date', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {

@@ -182,6 +182,22 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
+            icon: const Icon(LucideIcons.banknote, color: Colors.amberAccent),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => Padding(
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top + 40,
+                  ),
+                  child: _DriverAdvancesSheet(driverId: widget.driver['id']),
+                ),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(LucideIcons.pencil, color: Colors.cyanAccent),
             onPressed: () async {
               final result = await showDialog(
@@ -650,28 +666,7 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                   _buildStatItem("Total Hours", "${totalDuration.inHours}", "hrs"),
                 ],
               ),
-              24.heightBox,
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AddDriverPaymentDialog(initialDriverId: widget.driver['id']),
-                    ).then((_) {
-                      ref.invalidate(driverPaymentsProvider);
-                    });
-                  },
-                  icon: const Icon(LucideIcons.banknote, size: 18, color: Colors.black87),
-                  label: const Text('Add Advance Payment', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amberAccent,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-              ),
-              12.heightBox,
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -1512,3 +1507,113 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
   }
 }
 
+class _DriverAdvancesSheet extends ConsumerStatefulWidget {
+  final String driverId;
+  const _DriverAdvancesSheet({required this.driverId});
+
+  @override
+  ConsumerState<_DriverAdvancesSheet> createState() => _DriverAdvancesSheetState();
+}
+
+class _DriverAdvancesSheetState extends ConsumerState<_DriverAdvancesSheet> {
+  @override
+  Widget build(BuildContext context) {
+    // null month to fetch all advances for this driver
+    final paymentsAsync = ref.watch(driverPaymentsProvider((driverId: widget.driverId, month: null)));
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF171A24),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Driver Advances", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                IconButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AddDriverPaymentDialog(initialDriverId: widget.driverId),
+                    ).then((_) {
+                      ref.invalidate(driverPaymentsProvider);
+                    });
+                  },
+                  icon: const Icon(LucideIcons.plusCircle, color: Colors.amberAccent),
+                ),
+              ],
+            ),
+          ),
+          const Divider(color: Colors.white12),
+          Expanded(
+            child: paymentsAsync.when(
+              data: (payments) {
+                if (payments.isEmpty) {
+                  return const Center(child: Text("No advances recorded.", style: TextStyle(color: Colors.white54)));
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16).copyWith(bottom: 40),
+                  itemCount: payments.length,
+                  itemBuilder: (context, index) {
+                    final payment = payments[index];
+                    final date = DateTime.parse(payment['payment_date']);
+                    return Card(
+                      color: Colors.white.withOpacity(0.05),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: ListTile(
+                        leading: const CircleAvatar(
+                          backgroundColor: Colors.amberAccent,
+                          child: Icon(LucideIcons.banknote, color: Colors.black, size: 20),
+                        ),
+                        title: Text('Tk ${payment['amount']}', style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold)),
+                        subtitle: Text('${DateFormat.yMMMd().format(date)}${payment['note'] != null && payment['note'].toString().isNotEmpty ? ' · ${payment['note']}' : ''}', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                        trailing: IconButton(
+                          icon: const Icon(LucideIcons.trash2, color: Colors.redAccent, size: 20),
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                backgroundColor: const Color(0xFF171A24),
+                                title: const Text('Delete Advance?', style: TextStyle(color: Colors.white)),
+                                content: const Text('Are you sure you want to delete this advance payment?', style: TextStyle(color: Colors.white70)),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+                                  TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
+                                ],
+                              ),
+                            );
+                            if (confirm == true) {
+                              try {
+                                await ref.read(adminRepositoryProvider).deleteDriverPayment(payment['id']);
+                                ref.invalidate(driverPaymentsProvider);
+                                if (mounted) AppSnackbar.showSuccess(context, 'Deleted successfully');
+                              } catch(e) {
+                                if (mounted) AppSnackbar.showError(context, 'Error deleting payment');
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e,_) => Center(child: Text("Error: $e", style: const TextStyle(color: Colors.red))),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
