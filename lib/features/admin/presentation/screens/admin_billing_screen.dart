@@ -113,12 +113,18 @@ class _AdminBillingScreenState extends ConsumerState<AdminBillingScreen> {
                                           borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: Text(
-                                          client['name'].toString().substring(0, 1).toUpperCase(),
+                                          client['name'].toString().isNotEmpty ? client['name'].toString().substring(0, 1).toUpperCase() : 'C',
                                           style: const TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold),
                                         ),
                                       ),
                                       12.widthBox,
-                                      Text(client['name'], style: const TextStyle(color: Colors.white)),
+                                      Expanded(
+                                        child: Text(
+                                          client['name'],
+                                          style: const TextStyle(color: Colors.white),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 );
