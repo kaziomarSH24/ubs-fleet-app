@@ -11,6 +11,7 @@ import '../../../../core/widgets/app_aurora_background.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../providers/admin_providers.dart';
 import '../widgets/add_driver_dialog.dart';
+import '../widgets/add_driver_payment_dialog.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../driver/presentation/screens/driver_logs_screen.dart';
 import '../../../driver/data/repositories/driver_repository.dart';
@@ -200,11 +201,8 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Profile Header
-            // Profile Header
             Row(
               children: [
-                // Glowing Avatar
                 Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
@@ -258,7 +256,6 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
             ),
             24.heightBox,
             
-            // Driver Meta Information
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -288,7 +285,6 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
             ),
             24.heightBox,
 
-            // Status Toggle
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -341,7 +337,6 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
             ),
             const SizedBox(height: 40),
             
-            // Documents Section
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -505,7 +500,6 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
     final monthStart = DateTime(now.year, now.month, 1);
     final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
     
-    // We try to get logs if they exist locally
     final logs = ref.read(driverRepositoryProvider).getLogs(
       driverId,
       start: monthStart,
@@ -584,7 +578,6 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
               24.heightBox,
               Row(
                 children: [
-                  // Days Worked Box
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.all(16),
@@ -628,7 +621,6 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                     ),
                   ),
                   16.widthBox,
-                  // Overtime Box
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.all(16),
@@ -663,7 +655,28 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // Extract rent from vehicle if available
+                    showDialog(
+                      context: context,
+                      builder: (context) => AddDriverPaymentDialog(initialDriverId: widget.driver['id']),
+                    ).then((_) {
+                      ref.invalidate(driverPaymentsProvider);
+                      ref.invalidate(driverDetailProvider(widget.driver['id']));
+                    });
+                  },
+                  icon: const Icon(LucideIcons.banknote, size: 18, color: Colors.black87),
+                  label: const Text('Add Advance Payment', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amberAccent,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              12.heightBox,
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
                     final vehicleList = widget.driver['vehicles'] as List<dynamic>?;
                     final defaultRent = (vehicleList != null && vehicleList.isNotEmpty) 
                         ? ((vehicleList[0]['rent_amount'] ?? 0.0) as num).toDouble()
@@ -788,10 +801,6 @@ class _AdminDriverDetailScreenState extends ConsumerState<AdminDriverDetailScree
     );
   }
 }
-
-// ------------------------------------------------------------------------
-// BILLING RATES WIDGET
-// ------------------------------------------------------------------------
 
 class _AdminBillingRatesCard extends ConsumerStatefulWidget {
   final String driverId;
@@ -945,10 +954,6 @@ class _AdminBillingRatesCardState extends ConsumerState<_AdminBillingRatesCard> 
   }
 }
 
-// ------------------------------------------------------------------------
-// VERIFY BILL SHEET
-// ------------------------------------------------------------------------
-
 class _VerifyBillSheet extends ConsumerStatefulWidget {
   final String driverId;
   final double vehicleRentAmount;
@@ -1003,7 +1008,6 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
   @override
   void initState() {
     super.initState();
-    // Default values
     int cng = widget.claimedCngKm;
     int lpg = widget.claimedLpgKm;
     if (widget.vehicleFuelType.toLowerCase() == 'lpg') {
@@ -1036,7 +1040,6 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
       final rates = await ref.read(billingRepositoryProvider).getDriverRates(widget.driverId);
       final existingBill = await ref.read(billingRepositoryProvider).getMonthlyBill(widget.driverId, monthStr);
       
-      // Fetch total advances for this month
       final payments = await ref.read(driverRepositoryProvider).getDriverPayments(widget.driverId);
       final currentMonthPayments = payments.where((p) {
         if (p['payment_date'] == null) return false;
@@ -1049,6 +1052,7 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
       if (mounted) {
         setState(() {
           _rates = rates;
+          _advanceCtrl.text = totalAdvance.toString(); 
           if (existingBill != null) {
             int cng = (existingBill['actual_cng_km'] as num?)?.toInt() ?? 0;
             int lpg = (existingBill['actual_lpg_km'] as num?)?.toInt() ?? 0;
@@ -1080,11 +1084,10 @@ class _VerifyBillSheetState extends ConsumerState<_VerifyBillSheet> {
               _rentCtrl.text = "0";
             }
             
-            final existingAdvance = (existingBill['advance_amount'] as num?)?.toDouble() ?? 0.0;
-            _advanceCtrl.text = existingAdvance > 0 ? existingAdvance.toString() : totalAdvance.toString();
+            // Always default to the real-time sum of payments in the DB
+            // rather than the stale saved value. Admin can manually override if needed before saving.
+            // _advanceCtrl.text is already set to totalAdvance.toString() above.
             _startingFuelAdded = existingBill['starting_fuel_added'] == true;
-          } else {
-            _advanceCtrl.text = totalAdvance.toString();
           }
           _isLoading = false;
         });

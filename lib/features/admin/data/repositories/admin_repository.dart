@@ -543,7 +543,7 @@ class AdminRepository {
   }
 
   /// Fetch payments
-  Future<List<Map<String, dynamic>>> getDriverPayments({String? driverId}) async {
+  Future<List<Map<String, dynamic>>> getDriverPayments({String? driverId, DateTime? month}) async {
     try {
       var query = _supabase
           .from('driver_payments')
@@ -551,6 +551,14 @@ class AdminRepository {
       
       if (driverId != null) {
         query = query.eq('driver_id', driverId);
+      }
+      
+      if (month != null) {
+        final startOfMonth = DateTime(month.year, month.month, 1);
+        final endOfMonth = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
+        query = query
+            .gte('payment_date', startOfMonth.toIso8601String())
+            .lte('payment_date', endOfMonth.toIso8601String());
       }
       
       final response = await query.order('payment_date', ascending: false);

@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_aurora_background.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../providers/admin_providers.dart';
+import '../widgets/add_driver_payment_dialog.dart';
 
 class DriverPaymentsScreen extends ConsumerStatefulWidget {
   const DriverPaymentsScreen({super.key});
@@ -15,10 +16,18 @@ class DriverPaymentsScreen extends ConsumerStatefulWidget {
 }
 
 class _DriverPaymentsScreenState extends ConsumerState<DriverPaymentsScreen> {
+  DateTime _selectedMonth = DateTime.now();
+
+  void _changeMonth(int offset) {
+    setState(() {
+      _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + offset, 1);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    // null driverId means fetch all payments
-    final paymentsAsync = ref.watch(driverPaymentsProvider(null));
+    // null driverId means fetch all payments, filtered by _selectedMonth
+    final paymentsAsync = ref.watch(driverPaymentsProvider((driverId: null, month: _selectedMonth)));
 
     return AppAuroraBackground(
       appBar: AppBar(
@@ -33,11 +42,35 @@ class _DriverPaymentsScreenState extends ConsumerState<DriverPaymentsScreen> {
         label: const Text('Add Payment', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         onPressed: _showAddPaymentDialog,
       ),
-      child: paymentsAsync.when(
-        data: (payments) {
-          if (payments.isEmpty) {
-            return const Center(child: Text('No payments found', style: TextStyle(color: Colors.white70)));
-          }
+      child: Column(
+        children: [
+          // Month Selector
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left, color: Colors.white),
+                  onPressed: () => _changeMonth(-1),
+                ),
+                Text(
+                  DateFormat('MMMM yyyy').format(_selectedMonth),
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right, color: Colors.white),
+                  onPressed: () => _changeMonth(1),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: paymentsAsync.when(
+              data: (payments) {
+                if (payments.isEmpty) {
+                  return const Center(child: Text('No payments found for this month', style: TextStyle(color: Colors.white70)));
+                }
           return ListView.builder(
             padding: const EdgeInsets.all(20).copyWith(bottom: 100),
             itemCount: payments.length,
@@ -72,8 +105,11 @@ class _DriverPaymentsScreenState extends ConsumerState<DriverPaymentsScreen> {
             },
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.redAccent))),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.redAccent))),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -81,138 +117,9 @@ class _DriverPaymentsScreenState extends ConsumerState<DriverPaymentsScreen> {
   void _showAddPaymentDialog() {
     showDialog(
       context: context,
-      builder: (context) => const _AddPaymentDialog(),
+      builder: (context) => const AddDriverPaymentDialog(),
     ).then((_) {
       ref.invalidate(driverPaymentsProvider);
     });
-  }
-}
-
-class _AddPaymentDialog extends ConsumerStatefulWidget {
-  const _AddPaymentDialog();
-
-  @override
-  ConsumerState<_AddPaymentDialog> createState() => _AddPaymentDialogState();
-}
-
-class _AddPaymentDialogState extends ConsumerState<_AddPaymentDialog> {
-  final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController();
-  final _noteController = TextEditingController();
-  String? _selectedDriverId;
-  bool _isLoading = false;
-
-  @override
-  void dispose() {
-    _amountController.dispose();
-    _noteController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate() || _selectedDriverId == null) {
-      if (_selectedDriverId == null) {
-        AppSnackbar.showError(context, 'Please select a driver');
-      }
-      return;
-    }
-
-    setState(() => _isLoading = true);
-    try {
-      final amount = double.parse(_amountController.text);
-      await ref.read(adminRepositoryProvider).addDriverPayment(
-        driverId: _selectedDriverId!,
-        amount: amount,
-        paymentDate: DateTime.now(),
-        note: _noteController.text.isNotEmpty ? _noteController.text.trim() : null,
-      );
-      if (mounted) {
-        Navigator.pop(context, true);
-        AppSnackbar.showSuccess(context, 'Payment added successfully');
-      }
-    } catch (e) {
-      if (mounted) AppSnackbar.showError(context, 'Error: $e');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final driversAsync = ref.watch(driversProvider);
-
-    return AlertDialog(
-      backgroundColor: const Color(0xFF171A24),
-      title: const Text('Record Advance Payment', style: TextStyle(color: Colors.white)),
-      content: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            driversAsync.when(
-              data: (drivers) {
-                return DropdownButtonFormField<String>(
-                  value: _selectedDriverId,
-                  dropdownColor: const Color(0xFF171A24),
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: 'Select Driver',
-                    labelStyle: TextStyle(color: Colors.white54),
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-                  ),
-                  items: drivers.map((d) {
-                    return DropdownMenuItem<String>(
-                      value: d['id'],
-                      child: Text(d['full_name'] ?? 'Unknown'),
-                    );
-                  }).toList(),
-                  onChanged: (val) => setState(() => _selectedDriverId = val),
-                );
-              },
-              loading: () => const CircularProgressIndicator(),
-              error: (e, _) => const Text('Error loading drivers', style: TextStyle(color: Colors.red)),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _amountController,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Amount (Tk)',
-                labelStyle: TextStyle(color: Colors.white54),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-              ),
-              validator: (v) => v!.isEmpty ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _noteController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Note (Optional)',
-                labelStyle: TextStyle(color: Colors.white54),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-        ),
-        ElevatedButton(
-          onPressed: _isLoading ? null : _submit,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.black,
-          ),
-          child: _isLoading
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-              : const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
-        ),
-      ],
-    );
   }
 }
