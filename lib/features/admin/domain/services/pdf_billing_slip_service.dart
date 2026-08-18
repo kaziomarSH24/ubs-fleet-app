@@ -86,8 +86,6 @@ class PdfBillingSlipService {
     final toll = (billData['actual_toll_parking'] ?? 0).toDouble();
 
     final totalAllowances = otTotal + nightTotal + lunchTotal + toll;
-    
-    final driverTotal = totalFuelBill + totalAllowances;
 
     // Adjustments
     final rentAmount = (billData['vehicle_rent_amount'] ?? 0).toDouble();
@@ -102,7 +100,9 @@ class PdfBillingSlipService {
 
     final advanceAmount = (billData['advance_amount'] ?? 0).toDouble();
 
-    final adjustmentsSubtotal = rentAmount - replaceDeduction - absentDeduction - advanceAmount;
+    final driverTotal = totalFuelBill + totalAllowances - advanceAmount;
+
+    final adjustmentsSubtotal = rentAmount - replaceDeduction - absentDeduction;
     final finalPayable = driverTotal + adjustmentsSubtotal;
 
     // Colors to match Excel
@@ -259,6 +259,15 @@ class PdfBillingSlipService {
                       _buildCell(formatter.format(totalAllowances), isBold: true, alignRight: true),
                     ]
                   ),
+                  if (advanceAmount > 0)
+                    pw.TableRow(
+                      children: [
+                        _buildCell('Advance Amount (-)', isDeduction: true, isBold: true),
+                        _buildCell('-', alignRight: true),
+                        _buildCell('-', alignRight: true),
+                        _buildCell(formatter.format(advanceAmount), alignRight: true, textColor: PdfColors.red, isBold: true),
+                      ]
+                    ),
                 ],
               ),
               pw.SizedBox(height: 12),
@@ -313,14 +322,6 @@ class PdfBillingSlipService {
                   ),
                   _buildAllowanceRow('Replace Deduction (-)', replaceDays.toDouble(), replaceRate, replaceDeduction, formatter, isDeduction: true),
                   _buildAllowanceRow('Absent Deduction (-)', absentDays.toDouble(), absentRate, absentDeduction, formatter, isDeduction: true),
-                  pw.TableRow(
-                    children: [
-                      _buildCell('Advance Amount (-)', isDeduction: true),
-                      _buildCell('-', alignRight: true),
-                      _buildCell('-', alignRight: true),
-                      _buildCell(formatter.format(advanceAmount), alignRight: true),
-                    ]
-                  ),
                   pw.TableRow(
                     children: [
                       _buildCell(''),

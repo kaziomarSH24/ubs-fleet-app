@@ -8,7 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/data/services/auth_service.dart';
 import '../../data/repositories/driver_repository.dart';
-import '../../admin/domain/services/pdf_billing_slip_service.dart';
+import '../../../admin/domain/services/pdf_billing_slip_service.dart';
 
 final myPaymentsProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, driverId) async {
   final repo = ref.read(driverRepositoryProvider);
